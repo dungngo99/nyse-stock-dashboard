@@ -1,4 +1,4 @@
-# [NYSE Stock Dashboard](<github_link>) &middot; [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](<license_link>)
+# [NYSE Stock Dashboard](https://github.com/dungngo99/nyse-stock-dashboard) &middot; [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/dungngo99/nyse-stock-dashboard/blob/main/LICENSE)
 
 A final capstone project for my Udacity's Data Engineering Nanodegree where I track real-time performance of popular stock listed on NYSE by building an interactive dashboard to provide the users with up-to-date market data.
 
