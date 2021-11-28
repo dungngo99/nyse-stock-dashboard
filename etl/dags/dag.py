@@ -96,8 +96,7 @@ end_operator = DummyOperator(task_id='Stop_execution',  dag=dag)
 # Add the dependencies
 start_operator >> fetch_stock_data_task
 
-fetch_stock_data_task >> [
-    process_indicators_table_task, process_metadata_table_task]
+fetch_stock_data_task >> [process_indicators_table_task, process_metadata_table_task]
 
 [process_indicators_table_task, process_metadata_table_task] >> upload_to_S3_task
 
