@@ -1,13 +1,8 @@
-import requests
-import pandas as pd
-from datetime import datetime
-import json
 import configparser
 import boto3
 import os
 import glob
 
-from airflow.hooks.postgres_hook import PostgresHook
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
 

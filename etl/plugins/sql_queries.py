@@ -40,3 +40,11 @@ copy_indicators_to_redshift = """
     CREDENTIALS 'aws_iam_role={role_arn}'
     DELIMITER ',';
 """
+
+select_indicators_table = """
+    SELECT * FROM indicators;
+"""
+
+select_metadata_table = """
+    SELECT * FROM metadata;
+"""
