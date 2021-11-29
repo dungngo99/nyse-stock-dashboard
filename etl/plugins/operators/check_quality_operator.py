@@ -27,15 +27,33 @@ class CheckDataQualityOperator(BaseOperator):
         conn = psycopg2.connect(self.redshift_conn)
         cursor = conn.cursor()
         
+        # Implement a non-empty check for 'indicators' table
         cursor.execute(select_indicators_table)
         indicators = cursor.fetchall()
         if len(indicators) < 1:
             raise Exception("Not passed non-empty table check")
+            
+        # Implement a non-duplicate-primary-key check for 'indicators' table
+        # Table 'indicators' has a composite key (timestamp, symbol) for a primary key
+        primaryKeys = set([])
+        for row in indicators:
+            if (row[0], row[7]) in primaryKeys:
+                raise Exception("Not passed non-duplicate-primary-key table check")
+            primaryKeys.add((row[0], row[7]))
         
+        # Implement a non-empty check for 'metadata' table
         cursor.execute(select_metadata_table)
         metadata = cursor.fetchall()
         if len(metadata) < 1:
             raise Exception("Not passed non-empty table check")
         
+        # Implement a non-duplicate-primary-key check for 'metadata' table
+        # Table 'metadata' has a primary key (symbol)
+        primaryKeys = set([])
+        for row in metadata:
+            if row[1] in primaryKeys:
+                raise Exception("Not passed non-duplicate-primary-key table check")
+            primaryKeys.add(row[1])
+            
         cursor.close()
         conn.close()

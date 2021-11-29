@@ -90,7 +90,7 @@ The details about the pipeline can be seen in `etl` folder which includes `dags`
 
 #### Data quality checks
 
-In `check_quality_operator.py` under folder `etl/plugins/operators`, there are two non-empty-table quality checks whether two tables I migrated to Redshift contain any values, ensuring that the entire pipeline run correctly by looking at the final output.
+In `check_quality_operator.py` under folder `etl/plugins/operators`, there are two non-empty-table quality checks whether two tables I migrated to Redshift contain any values. There are also two non-duplicate-primary-key checks whether two tables have any duplicate keys. If any of them has, I have to redesign the primary key for that table. Having data quality checks will ensure that the entire pipeline run correctly by looking at the final output. 
 
 #### Data dictionary
 
