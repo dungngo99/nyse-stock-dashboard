@@ -97,8 +97,8 @@ Table | Description | Owner | Last accessed | Last updated | Number of columns |
 indicators | Timeseries OHLC stock data | Redshift - dngo | Nov 28th, 2021 | Nov 28th, 2021 | 8 | (timestamps, symbol)
 metadata | Company profiles | Redshift - dngo | Nov 28th, 2021 | Nov 28th, 2021 | 10 | symbol
 
-Figure 6: Data dictionary
-<br>
+Figure 6: Data dictionary <br><br>
+
 Column | Description | Data type | Constraint | Example |
 --- | --- | --- | --- | --- |
 currency | currency unit | text | not null | USD |
@@ -113,7 +113,7 @@ interval | query interval | text | not null | 1h (1 hour) |
 start_date | the minimum trade datetime in this query | text | not null | 1635341400 |
 
 Figure 7: `metadata`'s schema <br><br>
-<br>
+
 Column | Description | Data type | Constraint |
 --- | --- | --- | --- |
 timestamps | timestamps | big int | not null |
@@ -125,8 +125,7 @@ close | closing price at current timeframe | decimal | not null |
 datetime | current datetime | timestamp | not null
 symbol | company abbr. | text | not null foreign key
 
-Figure 8: `indicators`'s schema <br><br>
-<br>
+Figure 8: `indicators`'s schema <br><br><br>
 
 ### Step 5: Complete project write up
 
@@ -138,7 +137,7 @@ For this project, I use S3 since it can store any type of file object. I use Red
 
 Data will be updated every hour using Airflow scheduler. When it runs, new data will be generated and appended to Redshift. Since popular stocks such as AAPL, AMZN, or BAC are highly volatile, the data needs to be frequently updated.
 
-### 3. Use cases
+#### 3. Use cases
 
 If data was increased by 100x, it is better to increase the number of nodes or node type in Redshift to process data faster. In Redshift dashboard, it is recommended to check number of queries and data volume for latency and bottleneck issues. Finally, we should deploy our pipeline to bigger EC2 instances with larger RAM and disk to have faster processing.
 <br><br>
