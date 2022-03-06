@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.operators.dummy import DummyOperator
-from operators import (CheckDataQualityOperator,
+from plugins.operators import (CheckDataQualityOperator,
                     FetchAPIOperator,
                     MigrateS3RedshiftOperator,
                     ParseIndicatorsOperator,
@@ -17,13 +17,12 @@ config.read("../../config.cfg")
 
 # add default arguments
 default_args = {
-    'owner': 'udacity',
+    'owner': 'dngo',
     'start_date': datetime(2019, 1, 12),
     'depends_on_past': False,
     'email_on_retry': False,
-    'retry_delay': timedelta(minutes=5),
     'catchup': False,
-    'on_failure_callback': logging.error("Failed to execute 'udac_example_dag' DAG")
+    'on_failure_callback': logging.error("Failed to execute DAG")
 }
 
 # create the main DAG
@@ -40,38 +39,27 @@ start_operator = DummyOperator(task_id='Begin_execution',  dag=dag)
 fetch_stock_data_task = FetchAPIOperator(
     task_id="fetch_stock_data_task",
     dag=dag,
-    config=config,
-    symbol=config['Vars']['symbol'],
-    rangeData=config['Vars']['rangeData'],
-    interval=config['Vars']['interval']
+    config=config
 )
 
 # process indicators table
 process_indicators_table_task = ParseIndicatorsOperator(
     task_id="process_indicators_table_task",
-    dag=dag,
-    symbol=config['Vars']['symbol'],
-    rangeData=config['Vars']['rangeData'],
-    interval=config['Vars']['interval']
+    dag=dag
 )
 
 # process metadata table
 process_metadata_table_task = ParseMetaDataOperator(
     task_id="process_metadata_table_task",
     dag=dag,
-    symbol=config['Vars']['symbol'],
-    rangeData=config['Vars']['rangeData'],
-    interval=config['Vars']['interval']
+    config=config
 )
 
 # upload metadata table to S3
 upload_to_S3_task = UploadS3Operator(
     task_id="upload_metadata_S3_task",
     dag=dag,
-    config=config,
-    symbol=config['Vars']['symbol'],
-    rangeData=config['Vars']['rangeData'],
-    interval=config['Vars']['interval']
+    config=config
 )
 
 # migrate S3 to redshift
@@ -79,9 +67,6 @@ migrate_S3_to_redshift_task = MigrateS3RedshiftOperator(
     task_id="migrate_S3_to_redshift_task",
     dag=dag,
     config=config,
-    symbol=config['Vars']['symbol'],
-    rangeData=config['Vars']['rangeData'],
-    interval=config['Vars']['interval']
 )
 
 # include data quality
@@ -91,7 +76,7 @@ data_quality_check_task = CheckDataQualityOperator(
 )
 
 # create a dummy operator
-end_operator = DummyOperator(task_id='Stop_execution',  dag=dag)
+end_operator = DummyOperator(task_id='stop_execution',  dag=dag)
 
 # Add the dependencies
 start_operator >> fetch_stock_data_task

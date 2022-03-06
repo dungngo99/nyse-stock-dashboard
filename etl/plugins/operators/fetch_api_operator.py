@@ -1,55 +1,67 @@
 import requests
 import json
 import configparser
-import os
-from datetime import datetime
+import boto3
+import logging
 
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
+from utilities import create_metadata, create_indicators, upload_object
+
 
 class FetchAPIOperator(BaseOperator):
-    @apply_defaults
-    def __init__(self, symbol, config, rangeData="1d", interval="1m", *args, **kwargs):
-        super().__init__(**kwargs)
-        self.symbol = symbol
-        self.config = config
-        self.rangeData = rangeData
-        self.interval = interval
+    LOGGER = logging.getLogger(__name__)
 
-    def execute(self):
-        base_url = "https://apidojo-yahoo-finance-v1.p.rapidapi.com/market/get-charts"
-        querystring = {
+    @apply_defaults
+    def __init__(self, config, **kwargs):
+        super().__init__(**kwargs)
+        self.base_url = "https://apidojo-yahoo-finance-v1.p.rapidapi.com/market/get-charts"
+
+        self.query_string = {
             "region": "US",
             "lang": "en",
-            "symbol": self.symbol,
-            "range": self.rangeData,
-            "interval": self.interval
+            "symbol": config['env']['symbol'],
+            "range": config['env']['rangeData'],
+            "interval": config['env']['interval']
         }
-        headers = {
-            'x-rapidapi-host': self.config["RapidAPI"]['x-rapidapi-host'],
-            'x-rapidapi-key': self.config['RapidAPI']['x-rapidapi-key'],
+
+        self.headers = {
+            'x-rapidapi-host': config["RapidAPI"]['x-rapidapi-host'],
+            'x-rapidapi-key': config['RapidAPI']['x-rapidapi-key'],
             'Content-Type': "application/json"
         }
+
+        self.s3_client = boto3.client(
+            "s3",
+            region_name='us-west-2',
+            aws_access_key_id=config['AWS']['aws_access_key_id'],
+            aws_secret_access_key=config['AWS']['aws_secret_access_key']
+        )
+
+        self.bucket_name = config['S3']['bucket_name']
+
+    def execute(self):
         response = requests.request(
-            "GET", base_url, headers=headers, params=querystring)
+            "GET", self.base_url, headers=self.headers, params=self.query_string
+        )
+
         if response.ok:
             data = json.loads(response.content)
-            res = data['chart']['result'][0]
+            meta_df = create_metadata(data)
+            df = create_indicators(data)
+            mes = upload_object(
+                (self.s3_client, self.bucket_name),
+                (meta_df, df), "indicators"
+            )
 
-            dateId = datetime.fromtimestamp(min(res['timestamp'])).strftime("%m-%d-%Y")
-            path = os.path.join("../../../", 'data', 'rapid_api', self.symbol, 'charts', f'{self.rangeData}_{self.interval}')
-            file_path = os.path.join(path, f"{dateId}.json")
-            print("File path:", file_path)
+            if type(mes) == "str":
+                self.LOGGER.error(mes)
 
-            if not os.path.exists(path):
-                os.makedirs(path)
-            with open(file_path, 'w') as file:
-                json.dump(res, file)
 
 if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read("../../../config.cfg")
 
-    op = FetchAPIOperator(task_id="test", dag=None, symbol='AMZN', config=config)
+    op = FetchAPIOperator(task_id="test", dag=None, config=config)
     op.execute()
-    print("Successfully fetched data")
+    print("Successfully uploaded data to S3")

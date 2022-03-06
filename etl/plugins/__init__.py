@@ -1,11 +1,11 @@
 from airflow.plugins_manager import AirflowPlugin
 
 import operators
-import sql_queries
+import queries
 
 # Defining the plugin class
 class NYSEPipeline(AirflowPlugin):
-    name = "udacity_plugin"
+    name = "nyse_plugin"
     operators = [
         operators.CheckDataQualityOperator,
         operators.FetchAPIOperator,
@@ -15,5 +15,5 @@ class NYSEPipeline(AirflowPlugin):
         operators.UploadS3Operator
     ]
     helpers = [
-        sql_queries
+        queries
     ]
