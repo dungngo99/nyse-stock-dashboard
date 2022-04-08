@@ -130,3 +130,5 @@ dmypy.json
 
 # project config file
 *.cfg
+*.log
+*.csv
