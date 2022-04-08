@@ -4,12 +4,12 @@ import logging
 import pandas as pd
 import psycopg2
 import query
-import io
 
-logging.basicConfig(filename='pipeline/logs/postgres.log', level=logging.INFO)
+logging.basicConfig(
+    filename='/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/pipeline/logs/postgres.log', level=logging.INFO)
 
 config = configparser.ConfigParser()
-config.read("config.cfg")
+config.read("/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/config.cfg")
 
 s3_client = boto3.client(
     "s3",
@@ -44,7 +44,7 @@ def load_s3():
             logging.error(
                 f"Unsuccessfully get an object from s3. Status = {status}")
 
-    with open("pipeline/logs/keys.txt", "r") as file:
+    with open("/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/pipeline/logs/keys.txt", "r") as file:
         lines = file.readlines()
         stock_data = pd.DataFrame(columns=[
             "Timestamps",
@@ -86,9 +86,9 @@ def load_s3():
             meta_data = pd.concat([meta_data, meta_df])
 
         stock_data.to_csv(
-            "data/buffer/indicators.csv", index=False, header=False)
+            "/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/data/buffer/indicators.csv", index=False, header=False)
         meta_data.to_csv(
-            "data/buffer/metadata.csv", index=False, header=False)
+            "/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/data/buffer/metadata.csv", index=False, header=False)
 
 
 def update_postgres():
