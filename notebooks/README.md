@@ -44,10 +44,10 @@ Data is fetched at endpoint `/getchart` and then is parsed into 2 tabular tables
 - `metadata` table will demonstrate a specific company profile (e.g. Amazon or Apple).<br><br>
 
 A few top entries of two tables are showed in the following figures. Other details like data types and number of entries in each table are also showed in the notebook.<br><br>
-<img src="../images/indicators.png"></img>
+<img src="images/indicators.png"></img>
 Figure 1: `indicators` in Staging (API & S3).ipynb
 <br><br>
-<img src="../images/metadata.png"></img>
+<img src="images/metadata.png"></img>
 Figure 2: `metadata` in Staging (API & S3).ipynb
 <br><br><br>
 
@@ -57,10 +57,10 @@ Figure 2: `metadata` in Staging (API & S3).ipynb
 
 I uses a Kaggle dataset (called DJIA) for data analysis. It includes 30 popular historical timeseries stock data, such as AAPL, AMZN, GOGL, JPM, ...<br><br>
 In Exploration (Pandas & MLP).ipynb, I compute 5 statistics (max, min, avg, median, IQR) for OHLC columns and display them in boxplots. Furthermore, I graphed an OHLC chart to see how price changes in a specific timeframe.<br><br>
-<img src="../images/opening_ts.png"></img>
+<img src="images/opening_ts.png"></img>
 Figure 3: Opening price in Jan 2017 (1-hour interval)
 <br><br>
-<img src="../images/apple_ohlc.png"></img>
+<img src="images/apple_ohlc.png"></img>
 Figure 4: AAPL's OHLC chart
 <br><br><br>
 
@@ -74,14 +74,14 @@ The data model follows a STAR schema, where `indicators` is a fact table while `
 - Star schema is much easier to comprehend at high level when presenting to clients and executive members<br><br>
 
 `Data warehouse (S3 & Redshift).ipynb` shows a primary-foreign-key relationship between metadata and indicators tables via a column called symbol (e.g. AAPL or AMZN). The following figures show the table names, columns, and constraints for two tables.<br><br>
-<img src="../images/schemas.png"></img><br>
+<img src="images/schemas.png"></img><br>
 Figure 5: Schemas for `indicators` and `metadata`
 <br><br>
 
 #### 2. Mapping out data pipelines
 
 The following graph view of `nyse-stock` DAGs shows data flow.<br><br>
-<img src="../images/graph_view_dag.png"></img>
+<img src="images/graph_view_dag.png"></img>
 Figure 6: Graph view of ETL pipeline
 <br><br><br>
 
