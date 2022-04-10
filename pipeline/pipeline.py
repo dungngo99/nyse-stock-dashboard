@@ -3,7 +3,8 @@ import postgres
 import data_quality
 
 def pipeline():
-  api.api()
+  api.charts()
+  api.trending()
   postgres.update_postgres()
   data_quality.fetch_postgres()
 

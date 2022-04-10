@@ -35,6 +35,20 @@ create_indicators_table = """
     );
 """
 
+create_trending_table = """
+    CREATE TABLE IF NOT EXISTS trending (
+        region TEXT,
+        quoteType TEXT,
+        marketChangePercent DECIMAL,
+        firstTradeDate TIMESTAMP NOT NULL,
+        marketTime TIMESTAMP NOT NULL,
+        marketPrice DECIMAL,
+        exchange TEXT,
+        shortName TEXT,
+        symbol TEXT PRIMARY KEY
+    );
+"""
+
 update_meta_table = """
     CREATE TEMP TABLE buffer AS SELECT * FROM {table} LIMIT 0;
     
@@ -77,8 +91,33 @@ update_indicators_table = """
     DROP TABLE buffer; 
 """
 
+update_trending_table = """
+    CREATE TEMP TABLE buffer AS SELECT * FROM {table} LIMIT 0;
+    
+    COPY buffer
+    FROM '{filename}'
+    DELIMITER ','
+    CSV HEADER;
+    
+    INSERT INTO {table}
+    SELECT *
+    FROM buffer ON CONFLICT (symbol)
+    DO UPDATE
+    SET 
+        region = EXCLUDED.region,
+        quoteType = EXCLUDED.quoteType,
+        marketChangePercent = EXCLUDED.marketChangePercent,
+        firstTradeDate = EXCLUDED.firstTradeDate,
+        marketTime = EXCLUDED.marketTime,
+        marketPrice = EXCLUDED.marketPrice,
+        exchange = EXCLUDED.exchange,
+        shortName = EXCLUDED.shortName;
+        
+    DROP TABLE buffer;
+"""
+
 select_indicators_table = """
-    SELECT * FROM indicators WHERE symbol='AAPL';
+    SELECT * FROM indicators WHERE symbol='AAPL' LIMIT 10;
 """
 
 select_metadata_table = """

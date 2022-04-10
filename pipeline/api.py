@@ -17,7 +17,7 @@ logging.basicConfig(
 config = configparser.ConfigParser()
 config.read("/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/config.cfg")
 
-api_base_url = "https://apidojo-yahoo-finance-v1.p.rapidapi.com/market/get-charts"
+api_base_url = "https://yh-finance.p.rapidapi.com/market/"
 
 api_query_string = {
     "region": "US",
@@ -40,6 +40,7 @@ s3_client = boto3.client(
 )
 
 s3_bucket_name = config['S3']['bucket_name']
+s3_trending_name = config['S3']['trending_bucket_name']
 
 tickers = set([
     'AAPL',
@@ -63,25 +64,23 @@ tickers = set([
 ])
 
 
-def upload_object(aws, data, tag):
+def upload_charts(data):
     """Convert the dataframes to file object and store them in S3 bucket using boto3
 
     Args:
         aws (_type_): a tuple of s3-client object and bucket name
         data (_type_): a tuple of indicators dataframe and metadata dataframe
-        tag (_type_): a string either "indicators" or "metadata"
 
     Returns:
         _type_: two S3 bucket keys for metadata and indicators csv
     """
-    s3, bucket = aws
     df_meta, df = data
 
     keys = dict(df_meta.iloc[0, :])
-    file_name = str(keys['start_date']) + f".csv"
+    file_name = str(keys['start_date']) + ".csv"
 
     key = os.path.join(
-        keys['symbol'], tag, keys['range'],
+        keys['symbol'], 'indicators', keys['range'],
         keys['interval'], file_name)
 
     meta_key = os.path.join(
@@ -92,22 +91,44 @@ def upload_object(aws, data, tag):
     try:
         with io.StringIO() as csv_buffer:
             df_meta.to_csv(csv_buffer, index=False)
-            s3.put_object(
-                Bucket=bucket, Body=csv_buffer.getvalue(), Key=meta_key)
+            s3_client.put_object(
+                Bucket=s3_bucket_name,
+                Body=csv_buffer.getvalue(),
+                Key=meta_key)
             logging.info(
-                f"Successfully uploaded an object to S3 @ s3://{bucket}/{meta_key}")
+                f"Successfully uploaded an object to S3 @ s3://{s3_bucket_name}/{meta_key}")
 
         with io.StringIO() as csv_buffer:
             df.to_csv(csv_buffer, index=False)
-            s3.put_object(
-                Bucket=bucket, Body=csv_buffer.getvalue(), Key=key)
+            s3_client.put_object(
+                Bucket=s3_bucket_name,
+                Body=csv_buffer.getvalue(),
+                Key=key)
             logging.info(
-                f"Successfully uploaded an object to S3 @ s3://{bucket}/{key}")
+                f"Successfully uploaded an object to S3 @ s3://{s3_bucket_name}/{key}")
 
     except Exception as e:
         return e
 
     return (meta_key, key)
+
+
+def upload_trending(data, starttime):
+    key = os.path.join(str(starttime) + '.csv')
+
+    try:
+        with io.StringIO() as csv_buffer:
+            data.to_csv(csv_buffer, index=False)
+            s3_client.put_object(
+                Bucket=s3_trending_name, 
+                Body=csv_buffer.getvalue(), 
+                Key=key)
+            logging.info(
+                f"Successfully uploaded an object to S3 @ s3://{s3_trending_name}/{key}")
+            return key
+
+    except Exception as e:
+        return 1
 
 
 def create_indicators(response):
@@ -149,7 +170,7 @@ def create_metadata(response):
         response (_type_): a dictionary that stores fetched data
 
     Returns:
-        _type_: a dataframe 
+        _type_: a dataframe
     """
     metadata = response['meta']
     timestamps = response['timestamp']
@@ -185,7 +206,40 @@ def create_metadata(response):
     return pd.DataFrame(impt_metadata)
 
 
-def api():
+def create_trending(response):
+    quotes = response['quotes']
+    data = {
+        'region': [],
+        'quoteType': [],
+        'marketChangePercent': [],
+        'firstTradeDate': [],
+        'marketTime': [],
+        'marketPrice': [],
+        'exchange': [],
+        'shortName': [],
+        'symbol': []
+    }
+
+    for quote in quotes:
+        firstTradeDate = datetime.fromtimestamp(
+            int(quote.get('firstTradeDateMilliseconds', 0)) / 1000.0).strftime("%Y-%m-%d|%H:%M:%S")
+        marketTime = datetime.fromtimestamp(
+            int(quote.get('regularMarketTime', 0))).strftime("%Y-%m-%d|%H:%M:%S")
+        
+        data['region'].append(quote.get('region', "?").replace(",", "-").replace(' ', '-'))
+        data['quoteType'].append(quote.get('quoteType', "?").replace(",", "-").replace(' ', '-'))
+        data['marketChangePercent'].append(quote.get('regularMarketChangePercent', -1))
+        data['firstTradeDate'].append(firstTradeDate)
+        data['marketTime'].append(marketTime)
+        data['marketPrice'].append(quote.get('regularMarketPrice', -1))
+        data['exchange'].append(quote.get('exchange', "?").replace(",", "-").replace(' ', '-'))
+        data['shortName'].append(quote.get('shortName', "?").replace(",", "-").replace(' ', '-'))
+        data['symbol'].append(quote.get('symbol', "?").replace(",", "-").replace(' ', '-'))
+
+    return pd.DataFrame(data)
+
+
+def charts():
     """a subpipeline that runs through all above functions
     """
     keys = set([])
@@ -194,7 +248,7 @@ def api():
 
         try:
             response = requests.request(
-                "GET", api_base_url, headers=api_headers, params=api_query_string
+                "GET", api_base_url + 'get-charts', headers=api_headers, params=api_query_string
             )
 
             if response.ok:
@@ -205,27 +259,54 @@ def api():
                 try:
                     meta_df = create_metadata(data)
                     df = create_indicators(data)
+                    mes = upload_charts((meta_df, df))
 
-                    mes = upload_object(
-                        (s3_client, s3_bucket_name),
-                        (meta_df, df), "indicators"
-                    )
+                    if type(mes) == "str":
+                        logging.error(mes)
+                    else:
+                        logging.info(
+                            f"Successully fetched data with query_param={mes}")
+                        keys.add(",".join(mes) + "\n")
+
                 except KeyError:
                     logging.error(f"Found an error with query_param={ticker}")
 
-                if type(mes) == "str":
-                    logging.error(mes)
-                else:
-                    logging.info(
-                        f"Successully fetched data with query_param={mes}")
-                    keys.add(",".join(mes) + "\n")
-
-        except ValueError:
+        except:
             logging.error("Message error: value error")
 
     with open("/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/pipeline/logs/keys.txt", "w") as file:
         file.writelines(keys)
 
 
+def trending():
+    try:
+        response = requests.request(
+            "GET", api_base_url + 'get-trending-tickers', headers=api_headers)
+
+        if response.ok:
+            logging.info(f'Logging: getting trending tickers')
+            data = json.loads(response.content)
+            data = data['finance']['result'][0]
+
+            try:
+                df = create_trending(data)
+                key = upload_trending(df, data['jobTimestamp'])
+
+                if type(key) == "int":
+                    logging.error(key)
+                else:
+                    logging.info(f"Successully fetched trending tickers")
+                    with open("/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/pipeline/logs/trending.txt", "w") as file:
+                        file.writelines([key])
+
+            except Exception as e:
+                logging.error(
+                    f"Found an error fetching trending tickers - {e}")
+
+    except:
+        logging.error(f"Found an error with fetching trending tickers")
+
+
 if __name__ == "__main__":
-    api()
+    charts() 
+    trending()
