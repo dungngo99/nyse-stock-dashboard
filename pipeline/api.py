@@ -18,10 +18,10 @@ config = configparser.ConfigParser()
 config.read("/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/config.cfg")
 
 api_base_url = "https://yh-finance.p.rapidapi.com/market/"
+api_base_url_v2 = "https://yh-finance.p.rapidapi.com/stock/v2/"
 
 api_query_string = {
     "region": "US",
-    "lang": "en",
     "range": config['env']['rangeData'],
     "interval": config['env']['interval']
 }
@@ -42,27 +42,6 @@ s3_client = boto3.client(
 s3_bucket_name = config['S3']['bucket_name']
 s3_trending_name = config['S3']['trending_bucket_name']
 
-tickers = set([
-    'AAPL',
-    'MSFT',
-    'ABNB',
-    'ACN',
-    'ADBE',
-    'TSLA',
-    'FB',
-    'COIN',
-    'DKNG',
-    'JPM',
-    'AMZN',
-    'GOOGL',
-    'BAC',
-    'PPE',
-    'MA',
-    'F',
-    'NVDA',
-    'VOO'
-])
-
 
 def upload_charts(data):
     """Convert the dataframes to file object and store them in S3 bucket using boto3
@@ -75,7 +54,6 @@ def upload_charts(data):
         _type_: two S3 bucket keys for metadata and indicators csv
     """
     df_meta, df = data
-
     keys = dict(df_meta.iloc[0, :])
     file_name = str(keys['start_date']) + ".csv"
 
@@ -120,8 +98,8 @@ def upload_trending(data, starttime):
         with io.StringIO() as csv_buffer:
             data.to_csv(csv_buffer, index=False)
             s3_client.put_object(
-                Bucket=s3_trending_name, 
-                Body=csv_buffer.getvalue(), 
+                Bucket=s3_trending_name,
+                Body=csv_buffer.getvalue(),
                 Key=key)
             logging.info(
                 f"Successfully uploaded an object to S3 @ s3://{s3_trending_name}/{key}")
@@ -160,7 +138,7 @@ def create_indicators(response):
     df_indicators['Datetime'] = tss
     df_indicators['symbol'] = metadata['symbol']
 
-    return df_indicators
+    return df_indicators.fillna(method='bfill')
 
 
 def create_metadata(response):
@@ -176,15 +154,21 @@ def create_metadata(response):
     timestamps = response['timestamp']
 
     def get_trading_period(trade_period):
-        trading_periods = set([])
-        for period in trade_period:
+        start_period = 0
+        end_period = 0
+
+        for period in trade_period.values():
             start = datetime.fromtimestamp(int(
-                period[0]['start'])).strftime("%H:%M:%S")
+                period[0][0]['start'])).strftime("%H:%M:%S")
             end = datetime.fromtimestamp(int(
-                period[0]['end'])).strftime("%H:%M:%S")
-            date = f"{start}|{end}"
-            trading_periods.add(date)
-        return list(trading_periods)
+                period[0][0]['end'])).strftime("%H:%M:%S")
+
+            start_period = start if start_period == 0 else min(
+                start_period, start)
+            end_period = end if end_period == 0 else max(end_period, end)
+
+        date = f"{start_period}|{end_period}"
+        return date
 
     tss = pd.Series(timestamps).apply(
         lambda x: datetime.fromtimestamp(int(x)).strftime("%Y-%m-%d|%H:%M:%S"))
@@ -203,7 +187,7 @@ def create_metadata(response):
         'start_date': tss.min()
     }
 
-    return pd.DataFrame(impt_metadata)
+    return pd.DataFrame(impt_metadata, index=[0])
 
 
 def create_trending(response):
@@ -225,21 +209,27 @@ def create_trending(response):
             int(quote.get('firstTradeDateMilliseconds', 0)) / 1000.0).strftime("%Y-%m-%d|%H:%M:%S")
         marketTime = datetime.fromtimestamp(
             int(quote.get('regularMarketTime', 0))).strftime("%Y-%m-%d|%H:%M:%S")
-        
-        data['region'].append(quote.get('region', "?").replace(",", "-").replace(' ', '-'))
-        data['quoteType'].append(quote.get('quoteType', "?").replace(",", "-").replace(' ', '-'))
-        data['marketChangePercent'].append(quote.get('regularMarketChangePercent', -1))
+
+        data['region'].append(
+            quote.get('region', "?").replace(",", "-").replace(' ', '-'))
+        data['quoteType'].append(
+            quote.get('quoteType', "?").replace(",", "-").replace(' ', '-'))
+        data['marketChangePercent'].append(
+            quote.get('regularMarketChangePercent', -1))
         data['firstTradeDate'].append(firstTradeDate)
         data['marketTime'].append(marketTime)
         data['marketPrice'].append(quote.get('regularMarketPrice', -1))
-        data['exchange'].append(quote.get('exchange', "?").replace(",", "-").replace(' ', '-'))
-        data['shortName'].append(quote.get('shortName', "?").replace(",", "-").replace(' ', '-'))
-        data['symbol'].append(quote.get('symbol', "?").replace(",", "-").replace(' ', '-'))
+        data['exchange'].append(
+            quote.get('exchange', "?").replace(",", "-").replace(' ', '-'))
+        data['shortName'].append(
+            quote.get('shortName', "?").replace(",", "-").replace(' ', '-'))
+        data['symbol'].append(
+            quote.get('symbol', "?").replace(",", "-").replace(' ', '-'))
 
     return pd.DataFrame(data)
 
 
-def charts():
+def charts(tickers):
     """a subpipeline that runs through all above functions
     """
     keys = set([])
@@ -248,7 +238,7 @@ def charts():
 
         try:
             response = requests.request(
-                "GET", api_base_url + 'get-charts', headers=api_headers, params=api_query_string
+                "GET", api_base_url_v2 + 'get-chart', headers=api_headers, params=api_query_string
             )
 
             if response.ok:
@@ -268,11 +258,13 @@ def charts():
                             f"Successully fetched data with query_param={mes}")
                         keys.add(",".join(mes) + "\n")
 
-                except KeyError:
-                    logging.error(f"Found an error with query_param={ticker}")
+                except Exception as e:
+                    logging.error(
+                        f"Found a parsing error with query_param={ticker}: {e}")
 
-        except:
-            logging.error("Message error: value error")
+        except Exception as e:
+            logging.error(
+                f"Found a fetching error with query_param={ticker}: {e}")
 
     with open("/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/pipeline/logs/keys.txt", "w") as file:
         file.writelines(keys)
@@ -291,14 +283,16 @@ def trending():
             try:
                 df = create_trending(data)
                 key = upload_trending(df, data['jobTimestamp'])
-
+                
                 if type(key) == "int":
                     logging.error(key)
                 else:
                     logging.info(f"Successully fetched trending tickers")
                     with open("/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/pipeline/logs/trending.txt", "w") as file:
                         file.writelines([key])
-
+                        
+                charts(df['symbol'].values.tolist())
+                
             except Exception as e:
                 logging.error(
                     f"Found an error fetching trending tickers - {e}")
@@ -308,5 +302,26 @@ def trending():
 
 
 if __name__ == "__main__":
-    charts() 
+    tickers = set([
+        'AAPL',
+        'MSFT',
+        'ABNB',
+        'ACN',
+        'ADBE',
+        'TSLA',
+        'FB',
+        'COIN',
+        'DKNG',
+        'JPM',
+        'AMZN',
+        'GOOGL',
+        'BAC',
+        'PPE',
+        'MA',
+        'F',
+        'NVDA',
+        'VOO'
+    ])
+
+    # charts(tickers=tickers)
     trending()

@@ -33,19 +33,42 @@ def my_profile():
 
 @api.route("/table")
 def table():
+    def to_timeseries(data):
+        res = {
+            'low': [],
+            'open': [],
+            'high': [],
+            'close': [],
+            'datetime': []
+        }
+        
+        for row in data:
+            res['low'].append(row[0])
+            res['open'].append(row[1])
+            res['high'].append(row[2])
+            res['close'].append(row[3])
+            res['datetime'].append(row[4])
+        
+        return res
+        
     def to_json(lists):
-        from collections import defaultdict
-        res = defaultdict(dict)
+        res = {}
         for lst in lists:
+            cur.execute(query.select_latest_ticker_charts.format(ticker=lst[8]))
+            data = cur.fetchall()
+            ts = to_timeseries(data)
+            
+            if len(ts['datetime']) == 0:
+                continue
+            
             res[lst[8]] = {
                 'name': lst[7],
                 'exchange': lst[6],
-                'price': lst[5],
+                'price': round(lst[5]),
                 'time': lst[4].strftime("%Y-%m-%d %H:%M:%S"),
-                'firstTrade': lst[3].strftime("%Y-%m-%d %H:%M:%S"),
-                'percent': lst[2],
+                'percent': round(lst[2], 2),
                 'quoteType': lst[1],
-                'region': lst[0]
+                'timeseries': ts
             }
         return res
 

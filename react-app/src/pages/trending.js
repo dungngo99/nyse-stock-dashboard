@@ -27,17 +27,17 @@ export default function Trending() {
         <MDBContainer fluid >
             <SearchBar></SearchBar>
             <MDBRow>
-                <MDBCol md='8' style={{ height: '70%' }}>
+                <MDBCol md='9'>
                     <StockTable trending={trending}></StockTable>
-                    <div>
-                        <p>Daily most active movers</p>
-                        <div className='d-flex justify-content-between'>
+                    <div className='d-flex flex-column'>
+                        <p className='align-self-start m-0 p-0' >Daily most active movers</p>
+                        <div className='d-flex justify-content-around'>
                             {tickers.map((item, index) => <TickerBox key={index} name={item}></TickerBox>)}
                         </div>
                     </div>
                 </MDBCol>
 
-                <MDBCol md='4' style={{ height: '30%' }}>
+                <MDBCol md='3'>
                     <p>Current news</p>
                 </MDBCol>
             </MDBRow>
