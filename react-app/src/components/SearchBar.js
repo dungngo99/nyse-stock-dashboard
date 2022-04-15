@@ -17,11 +17,16 @@ import {
     MDBBadge
 } from 'mdb-react-ui-kit';
 
+let date = new Date();
+
 export default function App() {
     const [showBasic, setShowBasic] = useState(false);
-    const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString());
+    const [currentTime, setCurrentTime] = useState(date.toLocaleDateString() + " " + date.toLocaleTimeString());
 
-    const Ticker = () => setCurrentTime(new Date().toLocaleTimeString());
+    const Ticker = () => { 
+        date = new Date();
+        setCurrentTime(date.toLocaleDateString() + " " + date.toLocaleTimeString());
+    };
     setInterval(Ticker, 1000);
 
     return (

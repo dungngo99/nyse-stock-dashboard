@@ -18,7 +18,3 @@ def fetch_postgres():
     cur.execute(query.select_indicators_table)
     for record in cur:
         print(record)
-
-    cur.execute(query.select_metadata_table)
-    for record in cur:
-        print(record)

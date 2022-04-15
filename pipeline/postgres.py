@@ -20,6 +20,7 @@ s3_client = boto3.client(
 
 bucket_name = config['S3']['bucket_name']
 trending_bucket_name = config['S3']['trending_bucket_name']
+profile_bucket_name = config['S3']['profile_bucket_name']
 
 
 def get_s3(key, bucket_name):
@@ -38,6 +39,22 @@ def get_s3(key, bucket_name):
             rows.append(data[r].split(','))
 
         return columns, rows
+    else:
+        logging.error(
+            f"Unsuccessfully get an object from s3. Status = {status}")
+
+
+def get_s3_profile(key, bucket_name):
+    key = key.strip("\n")
+    response = s3_client.get_object(Bucket=bucket_name, Key=key)
+    status = response.get("ResponseMetadata", {}).get("HTTPStatusCode", -1)
+
+    if status == 200:
+        logging.info(
+            f"Successfully get an object from s3 @ s3://{bucket_name}/{key}")
+
+        return pd.read_csv(response['Body'])
+
     else:
         logging.error(
             f"Unsuccessfully get an object from s3. Status = {status}")
@@ -110,13 +127,47 @@ def load_s3():
         for line in lines:
             trending_columns, trending_rows = get_s3(
                 line, trending_bucket_name)
+
             buffer_df = pd.DataFrame(
                 data=trending_rows,
                 columns=trending_columns)
+
             trending_data = pd.concat([trending_data, buffer_df])
 
         trending_data.to_csv(
             "/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/data/buffer/trending.csv", index=False, header=False)
+
+    with open("/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/pipeline/logs/profile.txt", "r") as file:
+        lines = file.readlines()
+        profile_data = pd.DataFrame(columns=[
+            'openPrice',
+            'exchangeName',
+            'marketTime',
+            'name',
+            'currency',
+            'marketCap',
+            'quoteType',
+            'exchangeTimezoneName',
+            'beta',
+            'yield',
+            'dividendRate',
+            'strikePrice',
+            'ask',
+            'sector',
+            'fullTimeEmployees',
+            'longBusinessSummary',
+            'city',
+            'country',
+            'website',
+            'industry'
+        ])
+
+        for line in lines:
+            buffer_df = get_s3_profile(line, profile_bucket_name)
+            profile_data = pd.concat([profile_data, buffer_df])
+
+        profile_data.to_csv(
+            "/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/data/buffer/profile.csv", header=True, index=False)
 
 
 def update_postgres():
@@ -138,6 +189,11 @@ def update_postgres():
             cur.execute(query.update_trending_table.format(
                 filename=filename, table=table))
             conn.commit()
+        elif table == 'profile':
+            cur.execute(query.create_profile_table)
+            cur.execute(query.update_profile_table.format(
+                filename=filename, table=table))
+            conn.commit()
 
     conn = psycopg2.connect(host=config['Postgres']['host'],
                             dbname=config['Postgres']['dbName'],
@@ -151,6 +207,7 @@ def update_postgres():
         helper("metadata", '/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/data/buffer/metadata.csv')
         helper("indicators", '/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/data/buffer/indicators.csv')
         helper("trending", '/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/data/buffer/trending.csv')
+        helper("profile", '/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/data/buffer/profile.csv')
     except ValueError:
         logging.error("Message error: value error")
 

@@ -49,6 +49,33 @@ create_trending_table = """
     );
 """
 
+create_profile_table = """
+    CREATE TABLE IF NOT EXISTS profile (
+        openPrice DECIMAL,
+        exchangeName TEXT,
+        marketTime TIMESTAMP NOT NULL,
+        name TEXT,
+        currency TEXT,
+        marketCap TEXT,
+        quoteType TEXT,
+        exchangeTimezoneName TEXT,
+        beta TEXT,
+        yield TEXT,
+        dividendRate TEXT,
+        strikePrice TEXT,
+        ask TEXT,
+        sector TEXT,
+        fullTimeEmployees INTEGER,
+        longBusinessSummary TEXT,
+        city TEXT,
+        country TEXT,
+        website TEXT,
+        industry TEXT,
+        symbol TEXT NOT NULL REFERENCES metadata(symbol),
+        PRIMARY KEY (symbol)
+    )
+"""
+
 update_meta_table = """
     CREATE TEMP TABLE buffer AS SELECT * FROM {table} LIMIT 0;
     
@@ -116,8 +143,44 @@ update_trending_table = """
     DROP TABLE buffer;
 """
 
+update_profile_table = """
+    CREATE TEMP TABLE buffer AS SELECT * FROM {table} LIMIT 0;
+    
+    COPY buffer
+    FROM '{filename}'
+    CSV HEADER;
+    
+    INSERT INTO {table}
+    SELECT *
+    FROM buffer ON CONFLICT (symbol)
+    DO UPDATE
+    SET
+        openPrice = EXCLUDED.openPrice,
+        exchangeName = EXCLUDED.exchangeName,
+        marketTime = EXCLUDED.marketTime,
+        name = EXCLUDED.name,
+        currency = EXCLUDED.currency,
+        marketCap = EXCLUDED.marketCap,
+        quoteType = EXCLUDED.quoteType,
+        exchangeTimezoneName = EXCLUDED.exchangeTimezoneName,
+        beta = EXCLUDED.beta,
+        yield = EXCLUDED.yield,
+        dividendRate = EXCLUDED.dividendRate,
+        strikePrice = EXCLUDED.strikePrice,
+        ask = EXCLUDED.ask,
+        sector = EXCLUDED.sector,
+        fullTimeEmployees = EXCLUDED.fulltimeEmployees,
+        longBusinessSummary = EXCLUDED.longBusinessSummary,
+        city = EXCLUDED.city,
+        country = EXCLUDED.country,
+        website = EXCLUDED.website,
+        industry = EXCLUDED.industry;
+
+    DROP TABLE buffer;
+"""
+
 select_indicators_table = """
-    SELECT * FROM indicators WHERE symbol='AAPL' LIMIT 10;
+    SELECT * FROM indicators WHERE symbol='AAPL' LIMIT 5;
 """
 
 select_metadata_table = """

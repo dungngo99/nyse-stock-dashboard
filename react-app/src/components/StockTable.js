@@ -9,7 +9,16 @@ Chart.register(CategoryScale)
 
 export default function StockTable(props) {
     const [index, setIndex] = useState(0);
-    const columns = ['#', 'Exchange', 'Ticker', 'Percent Change', 'Market Price', 'Quote Type', 'Time', 'Chart']
+    const columns = [
+        '#',
+        'Exchange',
+        'Ticker',
+        'Percent Change (%)',
+        'Market Price (USD)',
+        'Quote Type',
+        'Time',
+        'Chart (Range: 1 day - Interval - 5 mins)'
+    ]
 
     const createPagination = () => {
         const itemsPerPagination = 5;
@@ -84,7 +93,7 @@ export default function StockTable(props) {
 
             <div style={{ height: '45vh', overflow: 'hidden' }}>
                 <Table className="table" size='sm' hover={true}>
-                    <thead className="thead-dark m-0 p-0" style={{ position: '-webkit - sticky', position: 'sticky', top: '0px' }}>
+                    <thead className="thead-dark m-0 p-0" style={{ position: 'sticky', top: '0px' }}>
                         <tr style={{ textAlign: 'center' }}> {columns.map((item, index) => <th className='m-0 p-0' key={item + index} scope='col'>{item}</th>)}</tr>
                     </thead>
 
@@ -95,11 +104,11 @@ export default function StockTable(props) {
                             options['backgroundColor'] = row['percent'] < 0 ? '#F65555' : '#75F745';
 
                             return (
-                                <tr key={row + i} style={{ color: color}}>
+                                <tr key={row + i} style={{ color: color }}>
                                     <th className='p-0 p-0' scope='row'>{i + 1}</th>
                                     {Object.keys(row).map((key, ii) => <td className='p-0 p-0' key={key + ii}>{row[key]}</td>)}
-                                    <td className='p-0 p-0' style={{ maxHeight: '75px', maxWidth: '350px'}}>
-                                        <Line options={options} plugins={{}} data={data} />
+                                    <td className='p-0 p-0' style={{ maxHeight: '75px', maxWidth: '350px' }}>
+                                        <Line options={options} data={data} />
                                     </td>
                                 </tr>
 

@@ -11,18 +11,27 @@ import api from '../utils/api'
 
 export default function Trending() {
     const [trending, setTrending] = useState({})
-    const tickers = ['AAPL', 'MSFT', 'AMZN', 'META', 'COIN'];
+    const [top5, setTop5] = useState({})
+    const tickers = ['AAPL', 'MSFT', 'AMZN', 'FB', 'COIN'];
 
     React.useEffect(() => {
-        api.get('table', {
+        api.get('trending', {
             method: 'GET'
         }).then(
             res => setTrending(res.data)
         ).catch(
             e => console.log(e)
         )
-    }, [])
 
+        api.get('movers', {
+            method: 'GET'
+        }).then(
+            res => setTop5(res.data)
+        ).catch(
+            e => console.log(e)
+        )
+    }, []);
+    
     return (
         <MDBContainer fluid >
             <SearchBar></SearchBar>
@@ -32,7 +41,7 @@ export default function Trending() {
                     <div className='d-flex flex-column'>
                         <p className='align-self-start m-0 p-0' >Daily most active movers</p>
                         <div className='d-flex justify-content-around'>
-                            {tickers.map((item, index) => <TickerBox key={index} name={item}></TickerBox>)}
+                            {JSON.stringify(top5) !== '{}' ? tickers.map((item, index) => <TickerBox data={top5[item]} key={index} name={item}></TickerBox>): null}
                         </div>
                     </div>
                 </MDBCol>

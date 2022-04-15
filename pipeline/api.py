@@ -41,6 +41,7 @@ s3_client = boto3.client(
 
 s3_bucket_name = config['S3']['bucket_name']
 s3_trending_name = config['S3']['trending_bucket_name']
+s3_profile_name = config['S3']['profile_bucket_name']
 
 
 def upload_charts(data):
@@ -106,6 +107,25 @@ def upload_trending(data, starttime):
             return key
 
     except Exception as e:
+        return 1
+
+
+def upload_profile(data, symbol):
+    key = os.path.join(symbol + '.csv')
+
+    try:
+        with io.StringIO() as csv_buffer:
+            data.to_csv(csv_buffer, index=False)
+            s3_client.put_object(
+                Bucket=s3_profile_name,
+                Body=csv_buffer.getvalue(),
+                Key=key)
+            logging.info(
+                f"Successfully uploaded an object to S3 @ s3://{s3_profile_name}/{key}")
+            return key
+
+    except Exception as e:
+        logging.error(e)
         return 1
 
 
@@ -229,6 +249,43 @@ def create_trending(response):
     return pd.DataFrame(data)
 
 
+def create_profile(data):
+    price = data['price']
+    quoteType = data['quoteType']
+    summaryDetail = data['summaryDetail']
+    assetProfile = data['assetProfile']
+
+    df = {'symbol': data['symbol']}
+    df['openPrice'] = price['regularMarketOpen']['raw']
+    df['exchangeName'] = price['exchangeName'].replace(" ", "-").replace(',', "-")
+    df['marketTime'] = datetime.fromtimestamp(
+        price['regularMarketTime']).strftime("%Y-%m-%d|%H:%M:%S")
+    df['name'] = price['shortName'].replace(" ", "-").replace(',', "-")
+    df['currency'] = price['currency']
+    df['marketCap'] = price['marketCap'].get('fmt', -1)
+    df['quoteType'] = price['quoteType'].replace(" ", "-").replace(',', "-")
+
+    df['exchangeTimezoneName'] = quoteType['exchangeTimezoneName']
+
+    df['beta'] = summaryDetail['beta'].get("fmt", -1)
+    df['yield'] = summaryDetail['yield'].get("fmt", -1)
+    df['dividendRate'] = summaryDetail['dividendRate'].get("fmt", -1)
+    df['strikePrice'] = summaryDetail['strikePrice'].get('fmt', -1)
+    df['ask'] = summaryDetail['ask'].get('fmt', -1)
+
+    df['sector'] = assetProfile['sector'].replace(" ", "-").replace(',', "-")
+    df['fullTimeEmployees'] = assetProfile['fullTimeEmployees']
+    df['longBusinessSummary'] = assetProfile['longBusinessSummary'].replace(
+        " ", "-").replace(',', "-")
+    df['city'] = assetProfile['city'].replace(" ", "-").replace(',', "-")
+    df['country'] = assetProfile['country'].replace(" ", "-").replace(',', "-")
+    df['website'] = assetProfile['website']
+    df['industry'] = assetProfile['industry'].replace(
+        " ", "-").replace(',', "-")
+
+    return pd.DataFrame(df, index=[0])
+
+
 def charts(tickers):
     """a subpipeline that runs through all above functions
     """
@@ -283,16 +340,16 @@ def trending():
             try:
                 df = create_trending(data)
                 key = upload_trending(df, data['jobTimestamp'])
-                
+
                 if type(key) == "int":
                     logging.error(key)
                 else:
                     logging.info(f"Successully fetched trending tickers")
                     with open("/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/pipeline/logs/trending.txt", "w") as file:
                         file.writelines([key])
-                        
+
                 charts(df['symbol'].values.tolist())
-                
+
             except Exception as e:
                 logging.error(
                     f"Found an error fetching trending tickers - {e}")
@@ -301,27 +358,41 @@ def trending():
         logging.error(f"Found an error with fetching trending tickers")
 
 
-if __name__ == "__main__":
-    tickers = set([
-        'AAPL',
-        'MSFT',
-        'ABNB',
-        'ACN',
-        'ADBE',
-        'TSLA',
-        'FB',
-        'COIN',
-        'DKNG',
-        'JPM',
-        'AMZN',
-        'GOOGL',
-        'BAC',
-        'PPE',
-        'MA',
-        'F',
-        'NVDA',
-        'VOO'
-    ])
+def profile(tickers):
+    keys = set([])
+    for ticker in tickers:
+        api_query_string['symbol'] = ticker
+        try:
+            response = requests.request(
+                "GET", api_base_url_v2 + 'get-profile', headers=api_headers, params=api_query_string)
 
-    # charts(tickers=tickers)
-    trending()
+            if response.ok:
+                logging.info(f"Logging: getting tickers' profile")
+                data = json.loads(response.content)
+
+                try:
+                    df = create_profile(data)
+                    key = upload_profile(df, ticker)
+
+                    if type(key) == "int":
+                        logging.error(key)
+                    else:
+                        logging.info(f"Successully fetched tickers' profile")
+                        
+                    keys.add(key + "\n")
+                    
+                except Exception as e:
+                    logging.error(
+                        f"Found an error fetching tickers' profile - {e}")
+
+        except:
+            logging.error(f"Found an error with fetching tickers' profile")
+
+    with open("/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/pipeline/logs/profile.txt", "w") as file:
+        file.writelines(keys)
+
+
+if __name__ == "__main__":
+    # charts(["AAPL", "MSFT", "AMZN", "META", "COIN"])
+    # trending()
+    profile(["AAPL", "MSFT", "AMZN", "FB", "COIN"])
