@@ -1,11 +1,3 @@
-drop_meta_table = """
-    DROP TABLE IF EXISTS metadata CASCADE;
-"""
-
-drop_indicators_table = """
-    DROP TABLE IF EXISTS indicators CASCADE;
-"""
-
 create_meta_table = """
     CREATE TABLE IF NOT EXISTS metadata (
         currency TEXT NOT NULL,
@@ -73,6 +65,21 @@ create_profile_table = """
         industry TEXT,
         symbol TEXT NOT NULL REFERENCES metadata(symbol),
         PRIMARY KEY (symbol)
+    )
+"""
+
+create_news_table = """
+    CREATE TABLE IF NOT EXISTS news (
+        id TEXT PRIMARY KEY,
+        contentType TEXT,
+        title TEXT,
+        pubDate TIMESTAMP NOT NULL,
+        thumbnailUrl TEXT,
+        thumbnailWidth INTEGER,
+        thumbnailHeight INTEGER,
+        thumbailTag TEXT,
+        Url TEXT,
+        provider TEXT
     )
 """
 
@@ -175,6 +182,32 @@ update_profile_table = """
         country = EXCLUDED.country,
         website = EXCLUDED.website,
         industry = EXCLUDED.industry;
+
+    DROP TABLE buffer;
+"""
+
+update_news_table = """
+    CREATE TEMP TABLE buffer AS SELECT * FROM {table} LIMIT 0;
+    
+    COPY buffer
+    FROM '{filename}'
+    DELIMITER ','
+    CSV HEADER;
+    
+    INSERT INTO {table}
+    SELECT *
+    FROM buffer ON CONFLICT (id)
+    DO UPDATE
+    SET 
+        contentType = EXCLUDED.contentType,
+        title = EXCLUDED.title,
+        pubDate = EXCLUDED.pubDate,
+        thumbnailUrl = EXCLUDED.thumbnailUrl,
+        thumbnailWidth = EXCLUDED.thumbnailWidth,
+        thumbnailHeight = EXCLUDED.thumbnailHeight,
+        thumbailTag = EXCLUDED.thumbailTag,
+        Url = EXCLUDED.Url,
+        provider = EXCLUDED.provider;
 
     DROP TABLE buffer;
 """

@@ -19,12 +19,7 @@ config.read("/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capst
 
 api_base_url = "https://yh-finance.p.rapidapi.com/market/"
 api_base_url_v2 = "https://yh-finance.p.rapidapi.com/stock/v2/"
-
-api_query_string = {
-    "region": "US",
-    "range": config['env']['rangeData'],
-    "interval": config['env']['interval']
-}
+api_base_url_news = "https://yh-finance.p.rapidapi.com/news/v2/"
 
 api_headers = {
     'x-rapidapi-host': config["RapidAPI"]['x-rapidapi-host'],
@@ -42,6 +37,7 @@ s3_client = boto3.client(
 s3_bucket_name = config['S3']['bucket_name']
 s3_trending_name = config['S3']['trending_bucket_name']
 s3_profile_name = config['S3']['profile_bucket_name']
+s3_news_name = config['S3']['news_bucket_name']
 
 
 def upload_charts(data):
@@ -122,6 +118,26 @@ def upload_profile(data, symbol):
                 Key=key)
             logging.info(
                 f"Successfully uploaded an object to S3 @ s3://{s3_profile_name}/{key}")
+            return key
+
+    except Exception as e:
+        logging.error(e)
+        return 1
+
+
+def upload_news(data):
+    time = datetime.now().strftime("%Y-%m-%d|%H:%M:%S")
+    key = os.path.join(time + '.csv')
+
+    try:
+        with io.StringIO() as csv_buffer:
+            data.to_csv(csv_buffer, index=False)
+            s3_client.put_object(
+                Bucket=s3_news_name,
+                Body=csv_buffer.getvalue(),
+                Key=key)
+            logging.info(
+                f"Successfully uploaded an object to S3 @ s3://{s3_news_name}/{key}")
             return key
 
     except Exception as e:
@@ -257,7 +273,8 @@ def create_profile(data):
 
     df = {'symbol': data['symbol']}
     df['openPrice'] = price['regularMarketOpen']['raw']
-    df['exchangeName'] = price['exchangeName'].replace(" ", "-").replace(',', "-")
+    df['exchangeName'] = price['exchangeName'].replace(
+        " ", "-").replace(',', "-")
     df['marketTime'] = datetime.fromtimestamp(
         price['regularMarketTime']).strftime("%Y-%m-%d|%H:%M:%S")
     df['name'] = price['shortName'].replace(" ", "-").replace(',', "-")
@@ -286,10 +303,66 @@ def create_profile(data):
     return pd.DataFrame(df, index=[0])
 
 
+def create_news(data):
+    def resolutions(thumbnail):
+        if thumbnail == None:
+            return {'url': '', 'width': 0, 'height': 0, 'tag': ''}
+        
+        group = []
+        for reso in thumbnail['resolutions']:
+            url = reso['url']
+            w = reso['width']
+            h = reso['height']
+            tag = reso['tag']
+            group.append(
+                ((w, h), {'url': url, 'width': w, 'height': h, 'tag': tag}))
+
+        sort = sorted(group, key=lambda x: x[0])
+        return sort[0][1]
+
+    news = data['data']['main']['stream']
+
+    df = {
+        'id': [],
+        'contentType': [],
+        'title': [],
+        'pubDate': [],
+        'thumbnailUrl': [],
+        'thumbnailWidth': [],
+        'thumbnailHeight': [],
+        'thumbailTag': [],
+        'Url': [],
+        'provider': []
+    }
+
+    for info in news:
+        content = info['content']
+        thumbnail = resolutions(content['thumbnail'])
+
+        df['id'].append(info['id'])
+        df['contentType'].append(content['contentType'])
+        df['title'].append(content['title'])
+        df['pubDate'].append(content['pubDate'])
+        df['thumbnailUrl'].append(thumbnail['url'])
+        df['thumbnailWidth'].append(thumbnail['width'])
+        df['thumbnailHeight'].append(thumbnail['height'])
+        df['thumbailTag'].append(thumbnail['tag'])
+        df['Url'].append(content['clickThroughUrl']['url'] if content['clickThroughUrl'] != None else '')
+        df['provider'].append(content['provider']['displayName'])
+
+    return pd.DataFrame(df)
+
+
 def charts(tickers):
     """a subpipeline that runs through all above functions
     """
+    api_query_string = {
+        "region": "US",
+        "range": config['env']['rangeData'],
+        "interval": config['env']['interval']
+    }
     keys = set([])
+
     for ticker in tickers:
         api_query_string['symbol'] = ticker
 
@@ -348,7 +421,10 @@ def trending():
                     with open("/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/pipeline/logs/trending.txt", "w") as file:
                         file.writelines([key])
 
-                charts(df['symbol'].values.tolist())
+                charts(df['symbol'].values.tolist() +
+                        ["AAPL", "MSFT", "AMZN", "META", "COIN"])
+                profile(df['symbol'].values.tolist() +
+                        ["AAPL", "MSFT", "AMZN", "META", "COIN"])
 
             except Exception as e:
                 logging.error(
@@ -360,6 +436,12 @@ def trending():
 
 def profile(tickers):
     keys = set([])
+    api_query_string = {
+        "region": "US",
+        "range": config['env']['rangeData'],
+        "interval": config['env']['interval']
+    }
+
     for ticker in tickers:
         api_query_string['symbol'] = ticker
         try:
@@ -378,9 +460,9 @@ def profile(tickers):
                         logging.error(key)
                     else:
                         logging.info(f"Successully fetched tickers' profile")
-                        
+
                     keys.add(key + "\n")
-                    
+
                 except Exception as e:
                     logging.error(
                         f"Found an error fetching tickers' profile - {e}")
@@ -392,7 +474,45 @@ def profile(tickers):
         file.writelines(keys)
 
 
+def news():
+    keys = set([])
+    api_query_string = {
+        "region": "US",
+        'snippetCount': '50',
+    }
+    api_headers['Content-Type'] = 'text/plain'
+
+    try:
+        response = requests.request(
+            "POST", api_base_url_news + 'list', headers=api_headers, params=api_query_string)
+
+        if response.ok:
+            logging.info(f"Logging: getting latest news")
+            data = json.loads(response.content)
+            try:
+                df = create_news(data)
+                key = upload_news(df)
+
+                if type(key) == "int":
+                    logging.error(key)
+                else:
+                    logging.info(f"Successully fetched latest news")
+
+                keys.add(key + "\n")
+
+            except Exception as e:
+                logging.error(
+                    f"Found an error fetching latest news - {e}")
+
+    except Exception as e:
+        logging.error(f"Found an error fetching latest news - {e}")
+
+    with open("/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/pipeline/logs/news.txt", "w") as file:
+        file.writelines(keys)
+
+
 if __name__ == "__main__":
     # charts(["AAPL", "MSFT", "AMZN", "META", "COIN"])
-    # trending()
-    profile(["AAPL", "MSFT", "AMZN", "FB", "COIN"])
+    # profile(["AAPL", "MSFT", "AMZN", "FB", "COIN"])
+    news()
+    pass

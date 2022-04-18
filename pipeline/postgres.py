@@ -4,6 +4,7 @@ import logging
 import pandas as pd
 import psycopg2
 import query
+import os
 
 logging.basicConfig(
     filename='/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/pipeline/logs/postgres.log', level=logging.INFO)
@@ -21,6 +22,7 @@ s3_client = boto3.client(
 bucket_name = config['S3']['bucket_name']
 trending_bucket_name = config['S3']['trending_bucket_name']
 profile_bucket_name = config['S3']['profile_bucket_name']
+news_bucket_name = config['S3']['news_bucket_name']
 
 
 def get_s3(key, bucket_name):
@@ -44,7 +46,7 @@ def get_s3(key, bucket_name):
             f"Unsuccessfully get an object from s3. Status = {status}")
 
 
-def get_s3_profile(key, bucket_name):
+def get_s3(key, bucket_name):
     key = key.strip("\n")
     response = s3_client.get_object(Bucket=bucket_name, Key=key)
     status = response.get("ResponseMetadata", {}).get("HTTPStatusCode", -1)
@@ -163,13 +165,34 @@ def load_s3():
         ])
 
         for line in lines:
-            buffer_df = get_s3_profile(line, profile_bucket_name)
+            buffer_df = get_s3(line, profile_bucket_name)
             profile_data = pd.concat([profile_data, buffer_df])
 
         profile_data.to_csv(
             "/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/data/buffer/profile.csv", header=True, index=False)
 
+    with open("/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/pipeline/logs/news.txt", 'r') as file:
+        lines = file.readlines()
+        news_data = pd.DataFrame(columns=[
+            'id',
+            'contentType',
+            'title',
+            'pubDate',
+            'thumbnailUrl',
+            'thumbnailWidth',
+            'thumbnailHeight',
+            'thumbailTag',
+            'Url',
+            'provider'
+        ])
 
+        for line in lines:
+            buffer_df = get_s3(line, news_bucket_name)
+            news_data = pd.concat([news_data, buffer_df])
+
+        news_data.to_csv(
+            "/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/data/buffer/news.csv", header=True, index=False)
+        
 def update_postgres():
     """Load the local files and insert data into PosgreSQL tables
     """
@@ -194,6 +217,11 @@ def update_postgres():
             cur.execute(query.update_profile_table.format(
                 filename=filename, table=table))
             conn.commit()
+        elif table == "news":
+            cur.execute(query.create_news_table)
+            cur.execute(query.update_news_table.format(
+                filename=filename, table=table))
+            conn.commit()
 
     conn = psycopg2.connect(host=config['Postgres']['host'],
                             dbname=config['Postgres']['dbName'],
@@ -208,9 +236,15 @@ def update_postgres():
         helper("indicators", '/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/data/buffer/indicators.csv')
         helper("trending", '/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/data/buffer/trending.csv')
         helper("profile", '/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/data/buffer/profile.csv')
+        helper("news", '/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/data/buffer/news.csv')
     except ValueError:
         logging.error("Message error: value error")
-
+    finally:
+        # os.remove('/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/pipeline/logs/profile.txt')
+        # os.remove('/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/pipeline/logs/keys.txt')
+        # os.remove("/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/pipeline/logs/trending.txt")
+        # os.remove("/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/pipeline/logs/news.txt")
+        pass
     conn.close()
 
 

@@ -16,7 +16,7 @@ export default function StockTable(props) {
         'Percent Change (%)',
         'Market Price (USD)',
         'Quote Type',
-        'Time',
+        'Trade Time',
         'Chart (Range: 1 day - Interval - 5 mins)'
     ]
 
