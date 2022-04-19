@@ -30,3 +30,11 @@ select_top_5_ticker_profiles = """
     SELECT * FROM profile
     WHERE symbol = '{ticker}'
 """
+
+select_news = """
+    SELECT * 
+    FROM news
+    WHERE pubdate >= (NOW()::timestamp - INTERVAL '1 day')
+    AND pubdate <= NOW()::timestamp
+    LIMIT 50
+"""

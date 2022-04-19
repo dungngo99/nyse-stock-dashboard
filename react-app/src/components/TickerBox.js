@@ -4,7 +4,6 @@ import Chart from 'chart.js/auto'
 
 Chart.register(CategoryScale)
 export default function TickerBox(props) {
-    console.log(props.data, props.name)
     const ts = props.data['timeseries'];
     const profile = props.data['profile'];
 

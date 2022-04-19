@@ -4,16 +4,19 @@ import {
     MDBRow,
     MDBCol
 } from 'mdb-react-ui-kit';
-import TickerBox from '../components/TickerBox.js';
+
+
 import SearchBar from '../components/SearchBar.js';
 import StockTable from '../components/StockTable.js';
+import NewsBoard from '../components/NewsBoard.js';
+import Movers from '../components/Movers.js';
 import api from '../utils/api'
 
 export default function Trending() {
     const [trending, setTrending] = useState({})
     const [top5, setTop5] = useState({})
-    const tickers = ['AAPL', 'MSFT', 'AMZN', 'FB', 'COIN'];
-
+    const [news, setNews] = useState([])
+    
     React.useEffect(() => {
         api.get('trending', {
             method: 'GET'
@@ -30,24 +33,28 @@ export default function Trending() {
         ).catch(
             e => console.log(e)
         )
+
+        api.get('news', {
+            method: "GET",
+        }).then(
+            res => setNews(res.data)
+        ).catch(
+            e => console.log(e)
+        )
+
     }, []);
-    
+
     return (
         <MDBContainer fluid >
             <SearchBar></SearchBar>
             <MDBRow>
-                <MDBCol md='9'>
+                <MDBCol md='9' className='d-flex flex-column align-items-between'>
                     <StockTable trending={trending}></StockTable>
-                    <div className='d-flex flex-column'>
-                        <p className='align-self-start m-0 p-0' >Daily most active movers</p>
-                        <div className='d-flex justify-content-around'>
-                            {JSON.stringify(top5) !== '{}' ? tickers.map((item, index) => <TickerBox data={top5[item]} key={index} name={item}></TickerBox>): null}
-                        </div>
-                    </div>
+                    <Movers top5={top5} ></Movers>
                 </MDBCol>
 
                 <MDBCol md='3'>
-                    <p>Current news</p>
+                    <NewsBoard news={news}></NewsBoard>
                 </MDBCol>
             </MDBRow>
         </MDBContainer>

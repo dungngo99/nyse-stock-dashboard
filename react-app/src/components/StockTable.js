@@ -4,6 +4,7 @@ import Table from 'react-bootstrap/Table'
 import { Line } from 'react-chartjs-2';
 import { CategoryScale } from 'chart.js';
 import Chart from 'chart.js/auto'
+import ClipLoader from "react-spinners/ClipLoader";
 
 Chart.register(CategoryScale)
 
@@ -85,6 +86,10 @@ export default function StockTable(props) {
             }
         }
         return [data, options];
+    }
+
+    if (JSON.stringify(props.trending) === '{}') {
+        return <ClipLoader color='red' size={100} />
     }
 
     return (

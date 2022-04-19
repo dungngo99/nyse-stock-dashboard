@@ -85,6 +85,24 @@ def to_profile(profile):
     }
 
 
+def to_news(data):
+    res = []
+    for tuple in data:
+        res.append({
+            "id": tuple[0],
+            "contentType": tuple[1],
+            "title": tuple[2],
+            "pubDate": tuple[3],
+            "thumbnailUrl": tuple[4],
+            "thumbnailWidth": tuple[5],
+            "thumbnailHeight": tuple[6],
+            "thumbailTag": tuple[7],
+            "Url": tuple[8],
+            "provider": tuple[9]
+        })
+    return res
+
+
 @api.route("/")
 def root():
     return {
@@ -104,7 +122,7 @@ def table():
 @api.route("/movers")
 def movers():
     cur = conn.cursor()
-    
+
     data = {}
     for ticker in ["AAPL", "MSFT", "AMZN", "FB", "COIN"]:
         cur.execute(query.select_top_5_ticker_charts.format(ticker=ticker))
@@ -114,6 +132,14 @@ def movers():
         data[ticker] = {'timeseries': ts, 'profile': to_profile(profile)}
 
     return data
+
+
+@api.route("/news")
+def news():
+    cur = conn.cursor()
+    cur.execute(query.select_news)
+    data = cur.fetchall()
+    return {"response": to_news(data)}
 
 
 if __name__ == "__main__":
