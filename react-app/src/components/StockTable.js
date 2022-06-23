@@ -116,7 +116,6 @@ export default function StockTable(props) {
                                         <Line options={options} data={data} />
                                     </td>
                                 </tr>
-
                             )
                         }) : null}
                     </tbody>

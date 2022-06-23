@@ -6,20 +6,21 @@ import pandas as pd
 import psycopg2
 import query
 
-log_path = "/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/backend/pipeline/logs/postgres.log"
-config_path = "/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/backend/config.cfg"
+base_path = '/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/backend'
+log_path = f"{base_path}/pipeline/logs/postgres.log"
+config_path = f"{base_path}/config.cfg"
 
-metadata_txt_path = "/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/backend/pipeline/buffer/meta.txt"
-indicators_txt_path = "/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/backend/pipeline/buffer/indicators.txt"
-trending_txt_path = "/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/backend/pipeline/buffer/trending.txt"
-profile_txt_path = "/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/backend/pipeline/buffer/profile.txt"
-news_txt_path = "/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/backend/pipeline/buffer/news.txt"
+metadata_txt_path = f"{base_path}/pipeline/buffer/meta.txt"
+indicators_txt_path = f"{base_path}/pipeline/buffer/indicators.txt"
+trending_txt_path = f"{base_path}/pipeline/buffer/trending.txt"
+profile_txt_path = f"{base_path}/pipeline/buffer/profile.txt"
+news_txt_path = f"{base_path}/pipeline/buffer/news.txt"
 
-indicators_csv_path = "/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/backend/pipeline/buffer/indicators.csv"
-metadata_csv_path = "/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/backend/pipeline/buffer/metadata.csv"
-trending_csv_path = "/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/backend/pipeline/buffer/trending.csv"
-profile_csv_path = "/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/backend/pipeline/buffer/profile.csv"
-news_csv_path = "/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/backend/pipeline/buffer/news.csv"
+indicators_csv_path = f"{base_path}/pipeline/buffer/indicators.csv"
+metadata_csv_path = f"{base_path}/pipeline/buffer/metadata.csv"
+trending_csv_path = f"{base_path}/pipeline/buffer/trending.csv"
+profile_csv_path = f"{base_path}/pipeline/buffer/profile.csv"
+news_csv_path = f"{base_path}/pipeline/buffer/news.csv"
 
 logging.basicConfig(filename=log_path, level=logging.INFO)
 config = configparser.ConfigParser()
@@ -105,9 +106,6 @@ news_columns = [
     'provider'
 ]
 
-sql_queries = {
-    
-}
 
 conn = psycopg2.connect(host=config['Postgres']['host'],
                         dbname=config['Postgres']['dbName'],

@@ -9,13 +9,14 @@ import io
 import logging
 from datetime import datetime
 
-log_path = "/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/backend/pipeline/logs/postgres.log"
-config_path = "/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/backend/config.cfg"
-indicators_txt_path = "/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/backend/pipeline/buffer/indicators.txt"
-meta_txt_path = "/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/backend/pipeline/buffer/meta.txt"
-trending_txt_path = "/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/backend/pipeline/buffer/trending.txt"
-profile_txt_path = "/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/backend/pipeline/buffer/profile.txt"
-news_txt_path = "/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/backend/pipeline/buffer/news.txt"
+base_path = '/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/backend'
+log_path = f"{base_path}/pipeline/logs/postgres.log"
+config_path = f"{base_path}/config.cfg"
+indicators_txt_path = f"{base_path}/pipeline/buffer/indicators.txt"
+meta_txt_path = f"{base_path}/pipeline/buffer/meta.txt"
+trending_txt_path = f"{base_path}/pipeline/buffer/trending.txt"
+profile_txt_path = f"{base_path}/pipeline/buffer/profile.txt"
+news_txt_path = f"{base_path}/pipeline/buffer/news.txt"
 
 logging.basicConfig(filename=log_path,level=logging.INFO)
 

@@ -35,7 +35,7 @@ export default function NewsBoard(props) {
                                                 <input type="submit" value="Follow" />
                                             </form> : null}
 
-                                            <div class="hover-overlay hover-shadow ripple">
+                                            <div className="hover-overlay hover-shadow ripple">
                                                 <button type="button" className="btn btn-dark btn-sm" data-mdb-ripple-color="dark">From: {item['provider']}</button>
                                             </div>
                                         </div>
