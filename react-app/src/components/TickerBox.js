@@ -50,7 +50,7 @@ export default function TickerBox(props) {
     const [data, options] = createChart(ts);
 
     return (
-        <div className="card text-center">
+        <div className="card text-center" style={{maxWidth: '200px'}}>
             <div className="card-header">
                 <div className='d-flex justify-content-between' >
                     <button type="button" className="btn btn-light btn-rounded btn-sm">

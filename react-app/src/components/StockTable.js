@@ -46,9 +46,12 @@ export default function StockTable(props) {
         })
         return [list, ts];
     }
-    const [stocks, ts] = createPagination();
 
     const createChart = (ts) => {
+        if (ts === [] || ts['datetime'] === []) {
+            return [{}, {}]
+        }
+
         const labels = Array.from(Array(ts['datetime'].length), () => "");
         const data = {
             labels,
@@ -92,6 +95,7 @@ export default function StockTable(props) {
         return <ClipLoader color='red' size={100} />
     }
 
+    const [stocks, ts] = createPagination();
     return (
         <div className='pb-3 d-flex flex-column'>
             <p>Trending stocks</p>
@@ -103,7 +107,7 @@ export default function StockTable(props) {
                     </thead>
 
                     <tbody className='m-0 p-0'>
-                        {stocks.length !== 0 ? stocks[index].map((row, i) => {
+                        {stocks.length !== 0 && stocks.length > index ? stocks[index].map((row, i) => {
                             const color = row['percent'] < 0 ? '#F65555' : 'green';
                             const [data, options] = createChart(ts[index][i]);
                             options['backgroundColor'] = row['percent'] < 0 ? '#F65555' : '#75F745';

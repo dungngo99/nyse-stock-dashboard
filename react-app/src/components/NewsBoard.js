@@ -13,7 +13,7 @@ export default function NewsBoard(props) {
         <div>
             <p>Current news</p>
             <div style={{ "height": "85vh", "overflow": 'scroll' }}>
-                {newsList.length !== 0 ? newsList['response'].map((item) => (
+                {newsList.length !== 0 ? newsList.map((item) => (
                     <div key={item['id']} >
                         <div className="card mb-3" >
                             <div className="row g-0">

@@ -38,3 +38,8 @@ select_news = """
     AND pubdate <= NOW()::timestamp
     LIMIT 50
 """
+
+select_one_ticker = """
+    SELECT * FROM profile
+    WHERE symbol = '{ticker}' LIMIT 1; 
+"""

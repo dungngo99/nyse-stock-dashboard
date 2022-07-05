@@ -2,9 +2,9 @@ import TickerBox from '../components/TickerBox.js';
 import ClipLoader from "react-spinners/ClipLoader";
 
 export default function Movers(props) {
-  const tickers = ['AAPL', 'MSFT', 'AMZN', 'FB', 'COIN'];
+  const tickers = ['AAPL', 'MSFT', 'AMZN', "ZM", 'COIN'];
   const top5 = props.top5;
-  
+
   if (JSON.stringify(top5) === '{}') {
     return <ClipLoader color='red' size={50} />
   }

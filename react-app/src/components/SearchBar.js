@@ -17,18 +17,29 @@ import {
     MDBBadge
 } from 'mdb-react-ui-kit';
 
+import { useDispatch } from "react-redux";
+import { addStockAsync } from '../utils/redux';
+
 let date = new Date();
 
 export default function App() {
+    const dispatch = useDispatch();
+    const [ticker, setTicker] = useState('');
     const [showBasic, setShowBasic] = useState(false);
     const [currentTime, setCurrentTime] = useState(date.toLocaleDateString() + " " + date.toLocaleTimeString());
 
-    const Ticker = () => { 
+    const Ticker = () => {
         date = new Date();
         setCurrentTime(date.toLocaleDateString() + " " + date.toLocaleTimeString());
     };
     setInterval(Ticker, 1000);
 
+    const handleTickerChange = (e) => setTicker(e.target.value);
+
+    const submit = (e) => {
+        e.preventDefault();
+        dispatch(addStockAsync(ticker))
+    }
     return (
         <MDBNavbar expand='lg' light bgColor='light'>
             <MDBContainer fluid>
@@ -78,8 +89,8 @@ export default function App() {
                     </MDBNavbarNav>
 
                     <form className='d-flex input-group w-auto'>
-                        <input type='search' id="sb_input" className='form-control' placeholder='Ticker' aria-label='Search' />
-                        <MDBBtn color='primary' size='sm'>Search</MDBBtn>
+                        <input type='search' id="sb_input" className='form-control' placeholder='Ticker' aria-label='Search' onChange={handleTickerChange} />
+                        <MDBBtn color='primary' size='sm' onClick={(e) => submit(e)}>Search</MDBBtn>
                     </form>
                 </MDBCollapse>
             </MDBContainer>

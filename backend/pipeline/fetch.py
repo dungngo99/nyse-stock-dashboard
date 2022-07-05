@@ -1,49 +1,14 @@
 import requests
 import json
-import configparser
-import boto3
 import logging
 import pandas as pd
 import os
 import io
 import logging
 from datetime import datetime
+import backend.config as config
 
-base_path = '/Users/ngodylan/Downloads/Data Engineering/Udacity D.E course/Capstone Project/nyse-stock-dashboard/backend'
-log_path = f"{base_path}/pipeline/logs/postgres.log"
-config_path = f"{base_path}/config.cfg"
-indicators_txt_path = f"{base_path}/pipeline/buffer/indicators.txt"
-meta_txt_path = f"{base_path}/pipeline/buffer/meta.txt"
-trending_txt_path = f"{base_path}/pipeline/buffer/trending.txt"
-profile_txt_path = f"{base_path}/pipeline/buffer/profile.txt"
-news_txt_path = f"{base_path}/pipeline/buffer/news.txt"
-
-logging.basicConfig(filename=log_path,level=logging.INFO)
-
-config = configparser.ConfigParser()
-config.read(config_path)
-
-api_base_url = "https://yh-finance.p.rapidapi.com/market/"
-api_base_url_v2 = "https://yh-finance.p.rapidapi.com/stock/v2/"
-api_base_url_news = "https://yh-finance.p.rapidapi.com/news/v2/"
-
-api_headers = {
-    'x-rapidapi-host': config["RapidAPI"]['x-rapidapi-host'],
-    'x-rapidapi-key': config['RapidAPI']['x-rapidapi-key'],
-    'Content-Type': "application/json"
-}
-
-s3_client = boto3.client(
-    "s3",
-    region_name='us-west-2',
-    aws_access_key_id=config['AWS']['aws_access_key_id'],
-    aws_secret_access_key=config['AWS']['aws_secret_access_key']
-)
-
-s3_bucket_name = config['S3']['bucket_name']
-s3_trending_name = config['S3']['trending_bucket_name']
-s3_profile_name = config['S3']['profile_bucket_name']
-s3_news_name = config['S3']['news_bucket_name']
+logging.basicConfig(filename=config.fetch_log_path, level=logging.INFO)
 
 
 def upload_charts(data):
@@ -51,35 +16,33 @@ def upload_charts(data):
     keys = dict(df_meta.iloc[0, :])
     file_name = str(keys['start_date']) + ".csv"
 
-    key = os.path.join(
-        keys['symbol'], 'indicators', keys['range'],
-        keys['interval'], file_name)
+    key = os.path.join(keys['symbol'], 'indicators', keys['range'],
+                       keys['interval'], file_name)
 
-    meta_key = os.path.join(
-        keys['symbol'], 'metadata', keys['range'],
-        keys['interval'], file_name
-    )
+    meta_key = os.path.join(keys['symbol'], 'metadata', keys['range'],
+                            keys['interval'], file_name)
 
     try:
         with io.StringIO() as csv_buffer:
             df_meta.to_csv(csv_buffer, index=False)
-            s3_client.put_object(
-                Bucket=s3_bucket_name,
-                Body=csv_buffer.getvalue(),
-                Key=meta_key)
+            config.s3_client.put_object(Bucket=config.s3_bucket_name,
+                                        Body=csv_buffer.getvalue(),
+                                        Key=meta_key)
             logging.info(
-                f"Successfully uploaded an object to S3 @ s3://{s3_bucket_name}/{meta_key}")
+                f"Successfully uploaded an object to S3 @ s3://{config.s3_bucket_name}/{meta_key}"
+            )
 
         with io.StringIO() as csv_buffer:
             df.to_csv(csv_buffer, index=False)
-            s3_client.put_object(
-                Bucket=s3_bucket_name,
-                Body=csv_buffer.getvalue(),
-                Key=key)
+            config.s3_client.put_object(Bucket=config.s3_bucket_name,
+                                        Body=csv_buffer.getvalue(),
+                                        Key=key)
             logging.info(
-                f"Successfully uploaded an object to S3 @ s3://{s3_bucket_name}/{key}")
+                f"Successfully uploaded an object to S3 @ s3://{config.s3_bucket_name}/{key}"
+            )
 
     except Exception as e:
+        logging.error(e)
         return (-1, -1)
 
     return (meta_key, key)
@@ -91,15 +54,16 @@ def upload_trending(data, starttime):
     try:
         with io.StringIO() as csv_buffer:
             data.to_csv(csv_buffer, index=False)
-            s3_client.put_object(
-                Bucket=s3_trending_name,
-                Body=csv_buffer.getvalue(),
-                Key=key)
+            config.s3_client.put_object(Bucket=config.s3_trending_name,
+                                        Body=csv_buffer.getvalue(),
+                                        Key=key)
             logging.info(
-                f"Successfully uploaded an object to S3 @ s3://{s3_trending_name}/{key}")
+                f"Successfully uploaded an object to S3 @ s3://{config.s3_trending_name}/{key}"
+            )
             return key
 
     except Exception as e:
+        logging.error(e)
         return 1
 
 
@@ -109,12 +73,12 @@ def upload_profile(data, symbol):
     try:
         with io.StringIO() as csv_buffer:
             data.to_csv(csv_buffer, index=False)
-            s3_client.put_object(
-                Bucket=s3_profile_name,
-                Body=csv_buffer.getvalue(),
-                Key=key)
+            config.s3_client.put_object(Bucket=config.s3_profile_name,
+                                        Body=csv_buffer.getvalue(),
+                                        Key=key)
             logging.info(
-                f"Successfully uploaded an object to S3 @ s3://{s3_profile_name}/{key}")
+                f"Successfully uploaded an object to S3 @ s3://{config.s3_profile_name}/{key}"
+            )
             return key
 
     except Exception as e:
@@ -129,12 +93,12 @@ def upload_news(data):
     try:
         with io.StringIO() as csv_buffer:
             data.to_csv(csv_buffer, index=False)
-            s3_client.put_object(
-                Bucket=s3_news_name,
-                Body=csv_buffer.getvalue(),
-                Key=key)
+            config.s3_client.put_object(Bucket=config.s3_news_name,
+                                        Body=csv_buffer.getvalue(),
+                                        Key=key)
             logging.info(
-                f"Successfully uploaded an object to S3 @ s3://{s3_news_name}/{key}")
+                f"Successfully uploaded an object to S3 @ s3://{config.s3_news_name}/{key}"
+            )
             return key
 
     except Exception as e:
@@ -191,17 +155,27 @@ def create_metadata(response):
         lambda x: datetime.fromtimestamp(int(x)).strftime("%Y-%m-%d|%H:%M:%S"))
 
     impt_metadata = {
-        "currency": metadata['currency'],
-        "symbol": metadata['symbol'],
-        "instrumentType": metadata['instrumentType'],
-        "firstTradeDate": datetime.fromtimestamp(
+        "currency":
+        metadata['currency'],
+        "symbol":
+        metadata['symbol'],
+        "instrumentType":
+        metadata['instrumentType'],
+        "firstTradeDate":
+        datetime.fromtimestamp(
             metadata['firstTradeDate']).strftime("%Y-%m-%d|%H:%M:%S"),
-        "exchangeTimezoneName": metadata["exchangeTimezoneName"],
-        'timezone': metadata['timezone'],
-        'trade_period': get_trading_period(metadata['tradingPeriods']),
-        'range': metadata['range'],
-        'interval': metadata['dataGranularity'],
-        'start_date': tss.min()
+        "exchangeTimezoneName":
+        metadata["exchangeTimezoneName"],
+        'timezone':
+        metadata['timezone'],
+        'trade_period':
+        get_trading_period(metadata['tradingPeriods']),
+        'range':
+        metadata['range'],
+        'interval':
+        metadata['dataGranularity'],
+        'start_date':
+        tss.min()
     }
 
     return pd.DataFrame(impt_metadata, index=[0])
@@ -223,9 +197,11 @@ def create_trending(response):
 
     for quote in quotes:
         firstTradeDate = datetime.fromtimestamp(
-            int(quote.get('firstTradeDateMilliseconds', 0)) / 1000.0).strftime("%Y-%m-%d|%H:%M:%S")
+            int(quote.get('firstTradeDateMilliseconds', 0)) /
+            1000.0).strftime("%Y-%m-%d|%H:%M:%S")
         marketTime = datetime.fromtimestamp(
-            int(quote.get('regularMarketTime', 0))).strftime("%Y-%m-%d|%H:%M:%S")
+            int(quote.get('regularMarketTime',
+                          0))).strftime("%Y-%m-%d|%H:%M:%S")
 
         data['region'].append(
             quote.get('region', "?").replace(",", "-").replace(' ', '-'))
@@ -254,8 +230,8 @@ def create_profile(data):
 
     df = {'symbol': data['symbol']}
     df['openPrice'] = price['regularMarketOpen']['raw']
-    df['exchangeName'] = price['exchangeName'].replace(
-        " ", "-").replace(',', "-")
+    df['exchangeName'] = price['exchangeName'].replace(" ",
+                                                       "-").replace(',', "-")
     df['marketTime'] = datetime.fromtimestamp(
         price['regularMarketTime']).strftime("%Y-%m-%d|%H:%M:%S")
     df['name'] = price['shortName'].replace(" ", "-").replace(',', "-")
@@ -272,31 +248,36 @@ def create_profile(data):
     df['ask'] = summaryDetail['ask'].get('fmt', -1)
 
     df['sector'] = assetProfile['sector'].replace(" ", "-").replace(',', "-")
-    df['fullTimeEmployees'] = assetProfile['fullTimeEmployees']
+    df['fullTimeEmployees'] = assetProfile.get('fullTimeEmployees', '')
     df['longBusinessSummary'] = assetProfile['longBusinessSummary'].replace(
         " ", "-").replace(',', "-")
     df['city'] = assetProfile['city'].replace(" ", "-").replace(',', "-")
     df['country'] = assetProfile['country'].replace(" ", "-").replace(',', "-")
     df['website'] = assetProfile['website']
-    df['industry'] = assetProfile['industry'].replace(
-        " ", "-").replace(',', "-")
+    df['industry'] = assetProfile['industry'].replace(" ",
+                                                      "-").replace(',', "-")
 
     return pd.DataFrame(df, index=[0])
 
 
 def create_news(data):
+
     def resolutions(thumbnail):
         if thumbnail == None:
             return {'url': '', 'width': 0, 'height': 0, 'tag': ''}
-        
+
         group = []
         for reso in thumbnail['resolutions']:
             url = reso['url']
             w = reso['width']
             h = reso['height']
             tag = reso['tag']
-            group.append(
-                ((w, h), {'url': url, 'width': w, 'height': h, 'tag': tag}))
+            group.append(((w, h), {
+                'url': url,
+                'width': w,
+                'height': h,
+                'tag': tag
+            }))
 
         sort = sorted(group, key=lambda x: x[0])
         return sort[0][1]
@@ -328,19 +309,18 @@ def create_news(data):
         df['thumbnailWidth'].append(thumbnail['width'])
         df['thumbnailHeight'].append(thumbnail['height'])
         df['thumbailTag'].append(thumbnail['tag'])
-        df['Url'].append(content['clickThroughUrl']['url'] if content['clickThroughUrl'] != None else '')
+        df['Url'].append(content['clickThroughUrl']['url']
+                         if content['clickThroughUrl'] != None else '')
         df['provider'].append(content['provider']['displayName'])
 
     return pd.DataFrame(df)
 
 
 def charts(tickers):
-    """a subpipeline that runs through all above functions
-    """
     api_query_string = {
         "region": "US",
-        "range": config['env']['rangeData'],
-        "interval": config['env']['interval']
+        "range": config.configs['env']['rangeData'],
+        "interval": config.configs['env']['interval']
     }
     meta_keys = set([])
     indicators_keys = set([])
@@ -349,11 +329,10 @@ def charts(tickers):
         api_query_string['symbol'] = ticker
 
         try:
-            response = requests.request(
-                "GET", 
-                api_base_url_v2 + 'get-chart', 
-                headers=api_headers, 
-                params=api_query_string)
+            response = requests.request("GET",
+                                        config.api_base_url_v2 + 'get-chart',
+                                        headers=config.api_headers,
+                                        params=api_query_string)
 
             if response.ok:
                 logging.info(f'Logging data with query_param={ticker}')
@@ -368,31 +347,36 @@ def charts(tickers):
                     if type(meta_key) == "int":
                         logging.error("Error of parsing charts")
                     else:
-                        logging.info(f"Successully fetched data with query_param={meta_key}-{indicators_key}")
+                        logging.info(
+                            f"Successully fetched data with query_param={meta_key}-{indicators_key}"
+                        )
                         meta_keys.add(meta_key + "\n")
                         indicators_keys.add(indicators_key + "\n")
 
                 except Exception as e:
-                    logging.error(f"Found a parsing error with query_param={ticker}: {e}")
+                    logging.error(
+                        f"Found a parsing error with query_param={ticker}: {e}"
+                    )
 
         except Exception as e:
-            logging.error(f"Found a fetching error with query_param={ticker}: {e}")
+            logging.error(
+                f"Found a fetching error with query_param={ticker}: {e}")
 
-    with open(meta_txt_path, "w") as file:
+    with open(config.metadata_txt_path, "w") as file:
         file.writelines(meta_keys)
-    with open(indicators_txt_path, "w") as file:
+    with open(config.indicators_txt_path, "w") as file:
         file.writelines(indicators_keys)
 
 
 def trending():
     try:
-        response = requests.request(
-            "GET", 
-            api_base_url + 'get-trending-tickers', 
-            headers=api_headers)
+        response = requests.request("GET",
+                                    config.api_base_url +
+                                    'get-trending-tickers',
+                                    headers=config.api_headers)
 
         if response.ok:
-            movers = ["AAPL", "MSFT", "AMZN", "FB", "COIN"]
+            movers = ["AAPL", "MSFT", "AMZN", "ZM", "COIN"]
             logging.info(f'Logging: getting trending tickers')
             data = json.loads(response.content)
             data = data['finance']['result'][0]
@@ -405,14 +389,15 @@ def trending():
                     logging.error(key)
                 else:
                     logging.info(f"Successully fetched trending tickers")
-                    with open(trending_txt_path, "w") as file:
+                    with open(config.trending_txt_path, "w") as file:
                         file.writelines([key])
 
                 charts(df['symbol'].values.tolist() + movers)
                 profile(df['symbol'].values.tolist() + movers)
 
             except Exception as e:
-                logging.error(f"Found an error fetching trending tickers - {e}")
+                logging.error(
+                    f"Found an error fetching trending tickers - {e}")
 
     except:
         logging.error(f"Found an error with fetching trending tickers")
@@ -425,11 +410,10 @@ def profile(tickers):
     for ticker in tickers:
         api_query_string['symbol'] = ticker
         try:
-            response = requests.request(
-                "GET", 
-                api_base_url_v2 + 'get-profile',
-                headers=api_headers,
-                params=api_query_string)
+            response = requests.request("GET",
+                                        config.api_base_url_v2 + 'get-profile',
+                                        headers=config.api_headers,
+                                        params=api_query_string)
 
             if response.ok:
                 logging.info(f"Logging: getting tickers' profile")
@@ -447,12 +431,13 @@ def profile(tickers):
                     keys.add(key + "\n")
 
                 except Exception as e:
-                    logging.error(f"Found an error fetching tickers' profile - {e}")
+                    logging.error(
+                        f"Found an error fetching tickers' profile - {e}")
 
         except:
             logging.error(f"Found an error with fetching tickers' profile")
 
-    with open(profile_txt_path, "w") as file:
+    with open(config.profile_txt_path, "w") as file:
         file.writelines(keys)
 
 
@@ -462,14 +447,13 @@ def news():
         "region": "US",
         'snippetCount': '50',
     }
-    api_headers['Content-Type'] = 'text/plain'
+    config.api_headers['Content-Type'] = 'text/plain'
 
     try:
-        response = requests.request(
-            "POST", 
-            api_base_url_news + 'list', 
-            headers=api_headers, 
-            params=api_query_string)
+        response = requests.request("POST",
+                                    config.api_base_url_news + 'list',
+                                    headers=config.api_headers,
+                                    params=api_query_string)
 
         if response.ok:
             logging.info(f"Logging: getting latest news")
@@ -486,13 +470,12 @@ def news():
                 keys.add(key + "\n")
 
             except Exception as e:
-                logging.error(
-                    f"Found an error fetching latest news - {e}")
+                logging.error(f"Found an error fetching latest news - {e}")
 
     except Exception as e:
         logging.error(f"Found an error fetching latest news - {e}")
 
-    with open(news_txt_path, "w") as file:
+    with open(config.news_txt_path, "w") as file:
         file.writelines(keys)
 
 
