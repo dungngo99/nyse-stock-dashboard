@@ -132,10 +132,9 @@ dmypy.json
 *.cfg
 *.log
 *.csv
-*.txt
 
 # environment folder
-/env
+*/.env
 
 #react node modules
-/node_modules
+**/node_modules
