@@ -1,1 +1,73 @@
-<mxfile host="app.diagrams.net" modified="2022-04-05T20:55:12.214Z" agent="5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.2 Safari/605.1.15" etag="m1kcpUeazEjlEr2QuzFJ" version="17.4.0" type="device"><diagram id="YmpAMReGRxXK9x1DbyDT" name="Page-1">5Vpbd6M2EP41Pid9aA5IgMmjb9m2Z9vjrvec7j7KoIBSGVEhx3Z+fSUjriKOExvH7b5gNLqhb2a+GQYP4GS1/cRRGv/OQkwHwAq3AzgdAGA7wJM/SrLLJb4DckHESagHVYIFecZaaGnpmoQ4awwUjFFB0qYwYEmCA9GQIc7ZpjnsgdHmrimKsCFYBIia0r9IKGJ9CjCs5L9gEsXFzrZ3l/esUDFYnySLUcg2NRGcDeCEMybyu9V2gqkCr8Aln3f/Qm/5YBwn4pgJbsKiR3+V4n/Q6I/h6Dn6U8Cf9SpPiK71geUTJQItFXyZuqgnD2IcrinmA7WFR+V246VseJG6u4lZJnCodkrkZTYBP+kDi12BImfrJMTqQWw5YxMTgRcpClTvRtqNlMViRXU3oiRK5H0gDyb3hOMnzAWRKhnpDsHUDPP8xWHkcLytiTQenzBbYcF3cojuBXdaN9o4ge3eurlkUynb9vWouK5ooAcibWBRuXqlA3mj1fAGlQDHgA+H0iZ1k3ERs4gliM4q6bgC2JKtasxnprDaw/qIhdhpB0NrwZqgSxD57puaLxHQze96uX1jum20drr1ohYytuYBPnRO7c2IR1gcGgfzgQqEg0rlmCJBnpqOe371GB7zZTrudoy5dIyI4+xEfziDoUPQNHRYGH7dzEGHmQ9BTzBCA8bZ1885jGilAEiWmfpJSYopSXA3wilnAc6yfed4T7qJ4nMZbpBQzPVA2eYK0LdbNON1oO90oW/1hL5joP8dxYxJ0T1JUBIoCEfzX+X1Zsoe2cdD6HotCB3/OAP2+oLQNyBcQIVXJlBEkqiyQaFgRU+MqBDJkVDYUrIi4vpQhcMjaaE3VAtPqcFqRsMkHKnMTqUIFGUZCZrANGNhGdjsRlirotwLgQ1vifhWu6/Nkq1qkmqcHgydI4OhfWQsrCnQ7dBfITs6ZOod5ozIk5X247Typ5LoiiXyc+tZ9dy0tZDrvMCQxUI5MMZCexsrj32C2Zl58D0WQXxjm04qfUs0DS4TnP2NJ4wyma1OE5aojOyBUNoSvZrYrkgY7tO5LtdvmvUZvL+tPakFw/u9DuOBvTm/mRSc6vzaie1bCzT82IfOQU9WjTnmRB5MaarJJBdLkYsX3tdYwb9uVvDPxAqwbXl9s4KZJp3JHptBBRyOKjW7GzYMz+7N8Pz/RThy2lHkvYbntONa34Y3NAxvIRjH1xuOOBNSc0zNAmcKT65lJBcdxZnLBigz6c/ThI6Sl6mX4/HmOCPPaLlfSqGZKkPbH8YdD9ypWmstWJbXct6i8pqabPdMWYTnNtXU8XLbpSTQm5LuemPtMv0v2fcY0r6yZAFcF2cPW1TrvpezWyUux7osZxfbtzn7v0EMZyAC2M7WXJMIuopcvREBMF/q5oyLB0aJKsmM0lTVa6Yoi5eMq+JMXkOcU7SjJFPlmby37PmCUSB+O1jOtS5TtwFNznUB6PpuAbvctrfPFq7Jshf4bFG84L2hSlNR89sqQu+n5uITxuvcfGxCfSLruq2KtOtatxZ0HB8MXd8D1vCy1Gm+9+fF51kSaoaTrngvA3X88TXT9qeUMu58WM20+MTezkp/nMjjt0K/b6qkK4XpL/KY728/lkbKLK5wEtibRmSz+g9FzkjVP1Hg7F8=</diagram></mxfile>
+<mxfile host="65bd71144e">
+    <diagram id="YmpAMReGRxXK9x1DbyDT" name="Page-1">
+        <mxGraphModel dx="1056" dy="563" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="5nogj8mpeqaAN7AzgQt3-1" value="Crontab as a scheduler &lt;br&gt;(hosted in EC2)&lt;br&gt;&lt;br&gt;ETL &amp;nbsp;pipeline&lt;br&gt;(fetch and store raw data)" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="260" y="145" width="170" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="5nogj8mpeqaAN7AzgQt3-24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="5nogj8mpeqaAN7AzgQt3-2" target="5nogj8mpeqaAN7AzgQt3-23" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="5nogj8mpeqaAN7AzgQt3-2" value="RDB (Postgres) to store normalized data" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="265.75" y="380" width="156" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="5nogj8mpeqaAN7AzgQt3-4" value="Yahoo Finance API (Dojo)" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="600" y="160" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="7" style="edgeStyle=none;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="5nogj8mpeqaAN7AzgQt3-8" target="5">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="5nogj8mpeqaAN7AzgQt3-8" value="S3 (staging data to avoid rate limit + store raw data)" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="600" y="250" width="130" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="5nogj8mpeqaAN7AzgQt3-10" value="" style="endArrow=classic;html=1;rounded=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="5nogj8mpeqaAN7AzgQt3-4" target="5nogj8mpeqaAN7AzgQt3-1" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="490" y="310" as="sourcePoint"/>
+                        <mxPoint x="540" y="260" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <object label="" ddd="ddddd" id="5nogj8mpeqaAN7AzgQt3-13">
+                    <mxCell style="endArrow=classic;html=1;rounded=0;exitX=1.02;exitY=0.834;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="5nogj8mpeqaAN7AzgQt3-1" target="5nogj8mpeqaAN7AzgQt3-8" edge="1">
+                        <mxGeometry width="50" height="50" relative="1" as="geometry">
+                            <mxPoint x="490" y="380" as="sourcePoint"/>
+                            <mxPoint x="540" y="330" as="targetPoint"/>
+                        </mxGeometry>
+                    </mxCell>
+                </object>
+                <mxCell id="5nogj8mpeqaAN7AzgQt3-14" value="" style="endArrow=classic;html=1;rounded=0;exitX=0;exitY=0.25;exitDx=0;exitDy=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;" parent="1" source="5nogj8mpeqaAN7AzgQt3-8" target="5nogj8mpeqaAN7AzgQt3-1" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="490" y="460" as="sourcePoint"/>
+                        <mxPoint x="540" y="410" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="5nogj8mpeqaAN7AzgQt3-21" value="Portfolio App (Dashboard + Playlist) (Chart + ReactJs)" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="590" y="527.5" width="130" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="5nogj8mpeqaAN7AzgQt3-25" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="5nogj8mpeqaAN7AzgQt3-23" target="5nogj8mpeqaAN7AzgQt3-21" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="510" y="550.0344827586207" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="5nogj8mpeqaAN7AzgQt3-23" value="API Endpoints (Flash)" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+                    <mxGeometry x="283.75" y="525" width="120" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" style="edgeStyle=none;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="5" target="11">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="590" y="380" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="5" value="Process data: flatten, extract, and apply data quality" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="257.5" y="270" width="172.5" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="12" style="edgeStyle=none;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" edge="1" parent="1" source="11" target="5nogj8mpeqaAN7AzgQt3-2">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="11" value="Store locally at /tmp/postgres" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="597.5" y="350" width="135" height="60" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

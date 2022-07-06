@@ -1,1 +1,12 @@
-MS.csv
+MS.json
+MSFT.json
+TSLA.json
+AAPL.json
+GOOG.json
+ROKU.json
+DASH.json
+COIN.json
+BAC.json
+ZM.json
+NFLX.json
+GS.json

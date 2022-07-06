@@ -8,9 +8,9 @@ configs = configparser.ConfigParser()
 configs.read("./backend/config.cfg")
 
 # api
-api_base_url = "https://yh-finance.p.rapidapi.com/market/"
-api_base_url_v2 = "https://yh-finance.p.rapidapi.com/stock/v2/"
-api_base_url_news = "https://yh-finance.p.rapidapi.com/news/v2/"
+api_market_url = "https://yh-finance.p.rapidapi.com/market/"
+api_stock_v2_url = "https://yh-finance.p.rapidapi.com/stock/v2/"
+api_news_url = "https://yh-finance.p.rapidapi.com/news/v2/"
 
 api_headers = {
     'x-rapidapi-host': configs["RapidAPI"]['x-rapidapi-host'],
@@ -48,8 +48,7 @@ api_log_path = "./backend/endpoints/api.log"
 
 # pipeline txt buffer
 pipeline_buffer_base_path = './backend/pipeline/buffer'
-indicators_txt_path = f"{pipeline_buffer_base_path}/indicators.txt"
-metadata_txt_path = f"{pipeline_buffer_base_path}/meta.txt"
+charts_txt_path = f"{pipeline_buffer_base_path}/chart.txt"
 trending_txt_path = f"{pipeline_buffer_base_path}/trending.txt"
 profile_txt_path = f"{pipeline_buffer_base_path}/profile.txt"
 news_txt_path = f"{pipeline_buffer_base_path}/news.txt"
@@ -57,8 +56,6 @@ news_txt_path = f"{pipeline_buffer_base_path}/news.txt"
 # pipeline csv buffer
 root_path = "/tmp/postgres"
 indicators_csv_path = os.path.abspath(f"{root_path}/indicators.csv")
-metadata_csv_path = os.path.abspath(f"{root_path}/metadata.csv")
-trending_csv_path = os.path.abspath(f"{root_path}/trending.csv")
 profile_csv_path = os.path.abspath(f"{root_path}/profile.csv")
 news_csv_path = os.path.abspath(f"{root_path}/news.csv")
 

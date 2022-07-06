@@ -1,0 +1,13 @@
+GOOG/charts/1d/5m/2022-07-06|16:06:35.json
+ZM/charts/1d/5m/2022-07-06|16:06:30.json
+TSLA/charts/1d/5m/2022-07-06|16:06:39.json
+NFLX/charts/1d/5m/2022-07-06|16:06:33.json
+GS/charts/1d/5m/2022-07-06|16:06:38.json
+MS/charts/1d/5m/2022-07-06|16:06:37.json
+DASH/charts/1d/5m/2022-07-06|16:06:40.json
+TWRT/charts/1d/5m/2022-07-06|16:06:43.json
+ROKU/charts/1d/5m/2022-07-06|16:06:42.json
+COIN/charts/1d/5m/2022-07-06|16:06:31.json
+MSFT/charts/1d/5m/2022-07-06|16:06:36.json
+AAPL/charts/1d/5m/2022-07-06|16:06:34.json
+BAC/charts/1d/5m/2022-07-06|16:06:41.json

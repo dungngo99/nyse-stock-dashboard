@@ -6,7 +6,7 @@ logging.basicConfig(filename=config.data_quality_log_path, level=logging.INFO)
 
 def main():
     cur = config.conn.cursor()
-    cur.execute(query.select_metadata_table)
+    cur.execute(query.test_select_indicators_table)
     for record in cur:
         logging.info(record)
 
